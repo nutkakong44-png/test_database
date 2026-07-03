@@ -204,16 +204,44 @@
     <div class="form-grid">
       <div><label>ชื่อ *</label><input id="f_firstName"></div>
       <div><label>นามสกุล *</label><input id="f_lastName"></div>
-      <div><label>ตำแหน่ง</label><input id="f_position"></div>
+      <div>
+        <label>ตำแหน่ง</label>
+        <select id="f_position" onchange="document.getElementById('f_positionOther').style.display=this.value==='อื่นๆ'?'block':'none'">
+          <option value="">-- เลือกตำแหน่ง --</option>
+          <option>ผู้อำนวยการกองช่าง</option>
+          <option>หัวหน้าฝ่ายแบบแผนและก่อสร้าง</option>
+          <option>หัวหน้าฝ่ายควบคุมอาคาร</option>
+          <option>หัวหน้าฝ่ายประสานสาธารณูปโภค</option>
+          <option>วิศวกรโยธา</option>
+          <option>นิติกร</option>
+          <option>นักจัดการงานทั่วไป</option>
+          <option>นายช่างโยธา</option>
+          <option>นายช่างเขียนแบบ</option>
+          <option>นายช่างสำรวจ</option>
+          <option>นายช่างเครื่องกล</option>
+          <option>นายช่างผังเมือง</option>
+          <option>ผู้ช่วยนักจัดการงานทั่วไป</option>
+          <option>ผู้ช่วยนายช่างโยธา</option>
+          <option>ผู้ช่วยนายช่างไฟ</option>
+          <option>ผู้ช่วยเจ้าพนักงานธุรการ</option>
+          <option>พนักงานขับเครื่องจักรกลขนาดเบา</option>
+          <option>พนักงานขับรถยนต์</option>
+          <option>จ้างพนักงานธุรการ</option>
+          <option>คนงาน</option>
+          <option>จ้างเหมา</option>
+          <option>อื่นๆ</option>
+        </select>
+        <input id="f_positionOther" placeholder="ระบุตำแหน่ง..." style="display:none;margin-top:6px;">
+      </div>
       <div>
         <label>ประเภท</label>
-        <select id="f_type">
-          <option>ข้าราชการ/พนักงานส่วนตำบล</option>
+        <select id="f_type" onchange="document.getElementById('f_typeOther').style.display=this.value==='อื่นๆ'?'block':'none'">
           <option>พนักงานจ้างตามภารกิจ</option>
           <option>พนักงานจ้างทั่วไป</option>
           <option>ลูกจ้างประจำ</option>
           <option>อื่นๆ</option>
         </select>
+        <input id="f_typeOther" placeholder="ระบุประเภท..." style="display:none;margin-top:6px;">
       </div>
       <div><label>เบอร์โทร</label><input id="f_phone"></div>
       <div>
@@ -232,15 +260,13 @@
     <h3>ประวัติส่วนตัว</h3>
     <div class="form-grid">
       <div><label>การศึกษา</label><input id="f_education"></div>
-      <div>
-        <label>สถานะ</label>
-        <select id="f_maritalStatus">
-          <option>โสด</option><option>สมรส</option><option>หย่า</option><option>หม้าย</option>
-        </select>
-      </div>
       <div><label>วันที่เข้าทำงาน</label><input type="date" id="f_startDate"></div>
       <div><label>เงินเดือน</label><input type="number" id="f_salary"></div>
       <div><label>เลขบัตรประชาชน</label><input id="f_idCard" maxlength="13"></div>
+      <div><label>วันที่บรรจุ</label><input type="date" id="f_appointDate"></div>
+      <div><label>ระยะเวลาบรรจุ</label><input id="f_appointDuration" readonly placeholder="คำนวณอัตโนมัติ" style="background:#f3f5f7;color:var(--muted);"></div>
+      <div><label>วันที่ปรับภารกิจ</label><input type="date" id="f_transferDate"></div>
+      <div><label>วันที่ลาออก</label><input type="date" id="f_resignDate"></div>
     </div>
 
     <h3>ข้อมูลฝึกอบรม</h3>
@@ -264,11 +290,15 @@
       <div class="full"><textarea id="f_note" rows="2"></textarea></div>
     </div>
 
-    <h3>บันทึกขาด / ลา / มาสาย</h3>
+    <h3>บันทึกการขาด / ลา / มาสาย</h3>
     <table class="subtable" id="formAttendanceTable"><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมายเหตุ</th><th></th></tr></thead><tbody></tbody></table>
     <div class="inline-add">
       <input id="f_att_date" type="date">
-      <select id="f_att_type"><option>ขาด</option><option>ลา</option><option>มาสาย</option></select>
+      <select id="f_att_type">
+        <option>มาสาย</option><option>ขาด</option><option>ลาป่วย</option>
+        <option>ลากิจ</option><option>ลาพักผ่อน</option><option>ลาบวช</option>
+        <option>ลาคลอด</option><option>อื่นๆ</option>
+      </select>
       <input id="f_att_note" placeholder="หมายเหตุ">
       <button type="button" class="btn outline-teal btn-sm" onclick="addFormAttendance()">+ เพิ่ม</button>
     </div>
@@ -310,7 +340,7 @@
     <h3>อื่นๆ</h3>
     <div class="detail-card"><div class="detail-grid" id="detailNoteInfo"></div></div>
 
-    <h3>บันทึกขาด / ลา / มาสาย</h3>
+    <h3>บันทึกการขาด / ลา / มาสาย</h3>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
       <span style="font-size:13px;font-weight:700;color:var(--navy);">สรุปปีงบประมาณ:</span>
       <select id="fySelect" onchange="renderFySummary()" style="padding:5px 12px;border:1.5px solid var(--teal);border-radius:7px;font-size:13px;font-family:inherit;"></select>
@@ -383,6 +413,9 @@ function calcAge(birthDate){
 document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('f_birthDate').addEventListener('change', e=>{
     document.getElementById('f_ageDisplay').value = calcAge(e.target.value);
+  });
+  document.getElementById('f_appointDate').addEventListener('change', e=>{
+    document.getElementById('f_appointDuration').value = calcAge(e.target.value);
   });
 });
 
@@ -496,9 +529,12 @@ function removeFormTraining(i){
 function openAddModal(){
   currentDetailId = null;
   document.getElementById('empModalTitle').textContent = 'เพิ่มบุคลากร';
-  ['firstName','lastName','position','phone','idCard','education','startDate','salary','hospital','emergencyContact','note','birthDate','ageDisplay'].forEach(f=>document.getElementById('f_'+f).value='');
+  ['firstName','lastName','position','phone','idCard','education','startDate','salary','hospital','emergencyContact','note','birthDate','ageDisplay','appointDate','appointDuration','transferDate','resignDate'].forEach(f=>document.getElementById('f_'+f).value='');
+  document.getElementById('f_positionOther').value = '';
+  document.getElementById('f_positionOther').style.display = 'none';
   document.getElementById('f_type').selectedIndex = 0;
-  document.getElementById('f_maritalStatus').selectedIndex = 0;
+  document.getElementById('f_typeOther').value = '';
+  document.getElementById('f_typeOther').style.display = 'none';
   document.getElementById('f_gender').value = '';
   document.getElementById('empModalBackdrop').dataset.editId = '';
   formTrainings = [];
@@ -516,12 +552,30 @@ function openEditModal(id){
   document.getElementById('empModalTitle').textContent = 'แก้ไขข้อมูลบุคลากร';
   document.getElementById('f_firstName').value = e.firstName||'';
   document.getElementById('f_lastName').value = e.lastName||'';
-  document.getElementById('f_position').value = e.position||'';
-  document.getElementById('f_type').value = e.type||'';
+  const posSel = document.getElementById('f_position');
+  const posOpts = [...posSel.options].map(o=>o.value);
+  if(posOpts.includes(e.position||'')){
+    posSel.value = e.position||'';
+    document.getElementById('f_positionOther').style.display = 'none';
+    document.getElementById('f_positionOther').value = '';
+  } else {
+    posSel.value = 'อื่นๆ';
+    document.getElementById('f_positionOther').value = e.position||'';
+    document.getElementById('f_positionOther').style.display = 'block';
+  }
+  const typeOpts = [...document.getElementById('f_type').options].map(o=>o.value);
+  if(typeOpts.includes(e.type||'')){
+    document.getElementById('f_type').value = e.type||'';
+    document.getElementById('f_typeOther').style.display = 'none';
+    document.getElementById('f_typeOther').value = '';
+  } else {
+    document.getElementById('f_type').value = 'อื่นๆ';
+    document.getElementById('f_typeOther').value = e.type||'';
+    document.getElementById('f_typeOther').style.display = 'block';
+  }
   document.getElementById('f_phone').value = e.phone||'';
   document.getElementById('f_idCard').value = e.idCard||'';
   document.getElementById('f_education').value = e.education||'';
-  document.getElementById('f_maritalStatus').value = e.maritalStatus||'โสด';
   document.getElementById('f_startDate').value = e.startDate||'';
   document.getElementById('f_salary').value = e.salary||'';
   document.getElementById('f_hospital').value = e.hospital||'';
@@ -530,6 +584,10 @@ function openEditModal(id){
   document.getElementById('f_gender').value = e.gender||'';
   document.getElementById('f_birthDate').value = e.birthDate||'';
   document.getElementById('f_ageDisplay').value = calcAge(e.birthDate);
+  document.getElementById('f_appointDate').value = e.appointDate||'';
+  document.getElementById('f_appointDuration').value = calcAge(e.appointDate);
+  document.getElementById('f_transferDate').value = e.transferDate||'';
+  document.getElementById('f_resignDate').value = e.resignDate||'';
   document.getElementById('empModalBackdrop').dataset.editId = id;
   formTrainings = JSON.parse(JSON.stringify(e.trainings||[]));
   renderFormTrainingTable();
@@ -547,12 +605,15 @@ function saveEmployee(){
   const editId = document.getElementById('empModalBackdrop').dataset.editId;
   const data = {
     firstName, lastName,
-    position: document.getElementById('f_position').value.trim(),
-    type: document.getElementById('f_type').value,
+    position: document.getElementById('f_position').value === 'อื่นๆ'
+      ? (document.getElementById('f_positionOther').value.trim() || 'อื่นๆ')
+      : document.getElementById('f_position').value,
+    type: document.getElementById('f_type').value === 'อื่นๆ'
+      ? (document.getElementById('f_typeOther').value.trim() || 'อื่นๆ')
+      : document.getElementById('f_type').value,
     phone: document.getElementById('f_phone').value.trim(),
     idCard: document.getElementById('f_idCard').value.trim(),
     education: document.getElementById('f_education').value.trim(),
-    maritalStatus: document.getElementById('f_maritalStatus').value,
     startDate: document.getElementById('f_startDate').value,
     salary: document.getElementById('f_salary').value,
     hospital: document.getElementById('f_hospital').value.trim(),
@@ -560,6 +621,9 @@ function saveEmployee(){
     note: document.getElementById('f_note').value.trim(),
     gender: document.getElementById('f_gender').value,
     birthDate: document.getElementById('f_birthDate').value,
+    appointDate: document.getElementById('f_appointDate').value,
+    transferDate: document.getElementById('f_transferDate').value,
+    resignDate: document.getElementById('f_resignDate').value,
     trainings: formTrainings,
     attendance: formAttendance,
     photo: formPhoto,
@@ -623,10 +687,13 @@ function renderDetail(){
 
   document.getElementById('detailPersonalInfo').innerHTML =
     dlItem('การศึกษา', e.education) +
-    dlItem('สถานะ', e.maritalStatus) +
     dlItem('วันที่เข้าทำงาน', e.startDate) +
     dlItem('เงินเดือน', e.salary?Number(e.salary).toLocaleString():'') +
-    dlItem('เลขบัตรประชาชน', formatIdCard(e.idCard));
+    dlItem('เลขบัตรประชาชน', formatIdCard(e.idCard)) +
+    dlItem('วันที่บรรจุ', e.appointDate) +
+    dlItem('ระยะเวลาบรรจุ', calcAge(e.appointDate)) +
+    dlItem('วันที่ปรับภารกิจ', e.transferDate) +
+    dlItem('วันที่ลาออก', e.resignDate);
 
   document.getElementById('detailHospitalInfo').innerHTML =
     dlItem('โรงพยาบาลตามสิทธิ', e.hospital) +
@@ -701,6 +768,10 @@ function printEmployee(id){
       table{width:100%;border-collapse:collapse;margin-top:10px;}
       td{padding:8px 10px;border:1px solid #ddd;font-size:14px;}
       td.label{background:#f3f5f7;font-weight:600;width:200px;}
+      .toggle-bar{margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+      .toggle-btn{padding:6px 14px;border:1.5px solid #0f7d92;border-radius:6px;background:#fff;color:#0f7d92;font-size:13px;cursor:pointer;font-family:inherit;}
+      .toggle-btn:hover{background:#eaf7f9;}
+      @media print{.toggle-btn{display:none;}}
       .print-header{display:flex;align-items:flex-start;gap:20px;margin-bottom:16px;}
       .print-photo{width:75px;height:105px;border:1.5px solid #aaa;border-radius:4px;overflow:hidden;flex-shrink:0;background:#e8ecef;display:flex;align-items:center;justify-content:center;}
       .print-photo img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -725,11 +796,14 @@ function printEmployee(id){
       <tr><td class="label">เพศ</td><td>${esc(e.gender)}</td></tr>
       <tr><td class="label">วันเกิด</td><td>${esc(e.birthDate)}</td></tr>
       <tr><td class="label">อายุ</td><td>${calcAge(e.birthDate)}</td></tr>
-      <tr><td class="label">เลขบัตรประชาชน</td><td>${formatIdCard(e.idCard)}</td></tr>
+      <tr><td class="label">เลขบัตรประชาชน</td><td><span id="idCardCell">${formatIdCard(e.idCard)}</span> <button class="toggle-btn" onclick="toggleId()" style="margin-left:8px;padding:3px 10px;font-size:12px;">🔒 ซ่อน</button></td></tr>
       <tr><td class="label">การศึกษา</td><td>${esc(e.education)}</td></tr>
-      <tr><td class="label">สถานะ</td><td>${esc(e.maritalStatus)}</td></tr>
       <tr><td class="label">วันที่เข้าทำงาน</td><td>${esc(e.startDate)}</td></tr>
       <tr><td class="label">เงินเดือน</td><td>${e.salary?Number(e.salary).toLocaleString():''}</td></tr>
+      <tr><td class="label">วันที่บรรจุ</td><td>${esc(e.appointDate)}</td></tr>
+      <tr><td class="label">ระยะเวลาบรรจุ</td><td>${calcAge(e.appointDate)}</td></tr>
+      <tr><td class="label">วันที่ปรับภารกิจ</td><td>${esc(e.transferDate)}</td></tr>
+      <tr><td class="label">วันที่ลาออก</td><td>${esc(e.resignDate)}</td></tr>
       <tr><td class="label">โรงพยาบาลตามสิทธิ</td><td>${esc(e.hospital)}</td></tr>
       <tr><td class="label">เบอร์ติดต่อฉุกเฉิน</td><td>${esc(e.emergencyContact)}</td></tr>
       <tr><td class="label">อื่นๆ</td><td>${esc(e.note)}</td></tr>
@@ -739,21 +813,53 @@ function printEmployee(id){
       <tr><td class="label">ชื่อหลักสูตร</td><td class="label">วันที่</td><td class="label">ระยะเวลา</td><td class="label">สถานที่</td></tr>
       ${(e.trainings||[]).map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
-    <h1 style="margin-top:24px;">บันทึกขาด / ลา / มาสาย</h1>
+    <h1 style="margin-top:24px;">บันทึกการขาด / ลา / มาสาย</h1>
     ${(()=>{ const fy=currentFiscalYear(); const c=getAttendanceSummary(e,fy); return `
     <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
       <div style="font-size:13px;font-weight:700;width:100%;color:#0c2f44;">สรุปปีงบประมาณ ${fy}</div>
-      <div style="border:1px solid #ffc107;border-radius:6px;padding:8px 18px;text-align:center;background:#fff9e6;">
-        <div style="font-size:20px;font-weight:700;color:#856404;">${c['ขาด']}</div><div style="font-size:11px;color:#856404;">ขาด (ครั้ง)</div></div>
-      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 18px;text-align:center;background:#e8f7fa;">
-        <div style="font-size:20px;font-weight:700;color:#0c5460;">${c['ลา']}</div><div style="font-size:11px;color:#0c5460;">ลา (ครั้ง)</div></div>
-      <div style="border:1px solid #dc3545;border-radius:6px;padding:8px 18px;text-align:center;background:#fdf0f1;">
-        <div style="font-size:20px;font-weight:700;color:#721c24;">${c['มาสาย']}</div><div style="font-size:11px;color:#721c24;">มาสาย (ครั้ง)</div></div>
+      <div style="border:1px solid #dc3545;border-radius:6px;padding:8px 14px;text-align:center;background:#fdf0f1;">
+        <div style="font-size:18px;font-weight:700;color:#721c24;">${c['มาสาย']}</div><div style="font-size:11px;color:#721c24;">มาสาย</div></div>
+      <div style="border:1px solid #ffc107;border-radius:6px;padding:8px 14px;text-align:center;background:#fff9e6;">
+        <div style="font-size:18px;font-weight:700;color:#856404;">${c['ขาด']}</div><div style="font-size:11px;color:#856404;">ขาด</div></div>
+      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
+        <div style="font-size:18px;font-weight:700;color:#0c5460;">${c['ลาป่วย']}</div><div style="font-size:11px;color:#0c5460;">ลาป่วย</div></div>
+      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
+        <div style="font-size:18px;font-weight:700;color:#0c5460;">${c['ลากิจ']}</div><div style="font-size:11px;color:#0c5460;">ลากิจ</div></div>
+      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
+        <div style="font-size:18px;font-weight:700;color:#0c5460;">${c['ลาพักผ่อน']}</div><div style="font-size:11px;color:#0c5460;">ลาพักผ่อน</div></div>
+      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
+        <div style="font-size:18px;font-weight:700;color:#0c5460;">${c['ลาคลอด']}</div><div style="font-size:11px;color:#0c5460;">ลาคลอด</div></div>
+      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
+        <div style="font-size:18px;font-weight:700;color:#0c5460;">${c['ลาบวช']}</div><div style="font-size:11px;color:#0c5460;">ลาบวช</div></div>
+      <div style="border:1px solid #aaa;border-radius:6px;padding:8px 14px;text-align:center;background:#f5f5f5;">
+        <div style="font-size:18px;font-weight:700;color:#555;">${c['อื่นๆ']}</div><div style="font-size:11px;color:#555;">อื่นๆ</div></div>
     </div>`; })()}
     <table>
       <tr><td class="label">วันที่</td><td class="label">ประเภท</td><td class="label">หมายเหตุ</td></tr>
       ${(e.attendance||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(a=>`<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
+    <script>
+      const realId = document.getElementById('idCardCell').textContent;
+      const maskedId = realId.replace(/[0-9]/g,'x');
+      let hidden = false;
+      function toggleId(){
+        hidden = !hidden;
+        document.getElementById('idCardCell').textContent = hidden ? maskedId : realId;
+        document.querySelector('.toggle-btn').textContent = hidden ? '🔓 แสดง' : '🔒 ซ่อน';
+      }
+    <\/script>
+    <div style="margin-top:60px;display:flex;justify-content:flex-end;gap:60px;padding-right:20px;font-family:inherit;font-size:14px;line-height:1.8;">
+      <div style="text-align:center;">
+        <div>(ลายมือชื่อ)…………………………………ผู้บันทึกข้อมูล</div>
+        <div style="margin-top:4px;">นางสาว มัทนา  เทียมศิริ</div>
+        <div>(ผู้ช่วยเจ้าพนักงานธุรการ)</div>
+      </div>
+      <div style="text-align:center;">
+        <div>(ลายมือชื่อ)…………………………………ผู้ตรวจ</div>
+        <div style="margin-top:4px;">นาย กฤชฏา  มากเต</div>
+        <div>(ผู้อำนวยการกองช่าง)</div>
+      </div>
+    </div>
     </body></html>
   `);
   w.document.close();
@@ -781,8 +887,11 @@ function getFiscalYears(emp){
 }
 
 function getAttendanceSummary(emp, fy){
-  const c = {ขาด:0, ลา:0, มาสาย:0};
-  (emp.attendance||[]).forEach(a=>{ if(getFiscalYear(a.date)===fy && c.hasOwnProperty(a.type)) c[a.type]++; });
+  const c = {มาสาย:0, ขาด:0, ลาป่วย:0, ลากิจ:0, ลาพักผ่อน:0, ลาคลอด:0, ลาบวช:0, อื่นๆ:0};
+  (emp.attendance||[]).forEach(a=>{
+    if(getFiscalYear(a.date)!==fy) return;
+    if(c.hasOwnProperty(a.type)) c[a.type]++;
+  });
   return c;
 }
 
@@ -791,19 +900,20 @@ function renderFySummary(){
   const e = employees.find(x=>x.id===currentDetailId);
   if(!e || !fy) return;
   const c = getAttendanceSummary(e, fy);
-  document.getElementById('fySummary').innerHTML = `
-    <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 22px;text-align:center;min-width:90px;">
-      <div style="font-size:26px;font-weight:700;color:#856404;">${c['ขาด']}</div>
-      <div style="font-size:12px;color:#856404;font-weight:600;">ขาด (ครั้ง)</div>
-    </div>
-    <div style="background:#d1ecf1;border:1px solid #17a2b8;border-radius:8px;padding:10px 22px;text-align:center;min-width:90px;">
-      <div style="font-size:26px;font-weight:700;color:#0c5460;">${c['ลา']}</div>
-      <div style="font-size:12px;color:#0c5460;font-weight:600;">ลา (ครั้ง)</div>
-    </div>
-    <div style="background:#f8d7da;border:1px solid #dc3545;border-radius:8px;padding:10px 22px;text-align:center;min-width:90px;">
-      <div style="font-size:26px;font-weight:700;color:#721c24;">${c['มาสาย']}</div>
-      <div style="font-size:12px;color:#721c24;font-weight:600;">มาสาย (ครั้ง)</div>
-    </div>`;
+  document.getElementById('fySummary').innerHTML = [
+    {label:'มาสาย', val:c['มาสาย'], bg:'#f8d7da', bd:'#dc3545', col:'#721c24'},
+    {label:'ขาด',   val:c['ขาด'],   bg:'#fff3cd', bd:'#ffc107', col:'#856404'},
+    {label:'ลาป่วย',val:c['ลาป่วย'],bg:'#d1ecf1', bd:'#17a2b8', col:'#0c5460'},
+    {label:'ลากิจ', val:c['ลากิจ'], bg:'#d1ecf1', bd:'#17a2b8', col:'#0c5460'},
+    {label:'ลาพักผ่อน',val:c['ลาพักผ่อน'],bg:'#d1ecf1',bd:'#17a2b8',col:'#0c5460'},
+    {label:'ลาคลอด',val:c['ลาคลอด'],bg:'#d1ecf1',bd:'#17a2b8',col:'#0c5460'},
+    {label:'ลาบวช', val:c['ลาบวช'], bg:'#d1ecf1', bd:'#17a2b8', col:'#0c5460'},
+    {label:'อื่นๆ', val:c['อื่นๆ'], bg:'#f5f5f5', bd:'#aaa',    col:'#555'},
+  ].map(x=>`
+    <div style="background:${x.bg};border:1px solid ${x.bd};border-radius:8px;padding:8px 14px;text-align:center;min-width:70px;">
+      <div style="font-size:22px;font-weight:700;color:${x.col};">${x.val}</div>
+      <div style="font-size:11px;color:${x.col};font-weight:600;">${x.label}</div>
+    </div>`).join('');
 }
 
 function populateFyDropdown(emp){
