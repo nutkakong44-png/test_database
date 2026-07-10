@@ -271,13 +271,16 @@
     </div>
 
     <h3>ข้อมูลฝึกอบรม</h3>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+      <button type="button" id="f_tr_sort_btn" class="btn outline-teal btn-sm" onclick="toggleTrSort()" style="font-size:12px;">📅 ใหม่→เก่า</button>
+    </div>
     <table class="subtable" id="formTrainingTable"><thead><tr><th>ชื่อหลักสูตร</th><th>วันที่</th><th>ระยะเวลา</th><th>สถานที่</th><th></th></tr></thead><tbody></tbody></table>
     <div class="inline-add">
       <input id="f_tr_name" placeholder="ชื่อหลักสูตร">
       <input id="f_tr_date" type="date">
       <input id="f_tr_duration" placeholder="ระยะเวลา (เช่น 3 วัน)">
       <input id="f_tr_location" placeholder="สถานที่">
-      <button type="button" class="btn outline-teal btn-sm" onclick="addFormTraining()">+ เพิ่ม</button>
+      <button type="button" id="f_tr_add_btn" class="btn outline-teal btn-sm" onclick="addFormTraining()">+ เพิ่ม</button>
     </div>
 
     <h3>โรงพยาบาลตามสิทธิ / เบอร์ติดต่อฉุกเฉิน</h3>
@@ -292,6 +295,9 @@
     </div>
 
     <h3>บันทึกการขาด / ลา / มาสาย</h3>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+      <button type="button" id="f_att_sort_btn" class="btn outline-teal btn-sm" onclick="toggleAttSort()" style="font-size:12px;">📅 ใหม่→เก่า</button>
+    </div>
     <table class="subtable" id="formAttendanceTable"><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมายเหตุ</th><th></th></tr></thead><tbody></tbody></table>
     <div class="inline-add">
       <input id="f_att_date" type="date">
@@ -301,7 +307,7 @@
         <option>ลาคลอด</option><option>อื่นๆ</option>
       </select>
       <input id="f_att_note" placeholder="หมายเหตุ">
-      <button type="button" class="btn outline-teal btn-sm" onclick="addFormAttendance()">+ เพิ่ม</button>
+      <button type="button" id="f_att_add_btn" class="btn outline-teal btn-sm" onclick="addFormAttendance()">+ เพิ่ม</button>
     </div>
 
     <div class="modal-actions">
@@ -465,6 +471,23 @@ function renderTable(){
 let formTrainings = [];
 let formAttendance = [];
 let formPhoto = null;
+let formTrainingEditIdx = null;
+let formAttendanceEditIdx = null;
+let formTrSortDesc = true;   // true = ใหม่→เก่า, false = เก่า→ใหม่
+let formAttSortDesc = true;
+
+function toggleTrSort(){
+  formTrSortDesc = !formTrSortDesc;
+  const btn = document.getElementById('f_tr_sort_btn');
+  if(btn) btn.textContent = formTrSortDesc ? '📅 ใหม่→เก่า' : '📅 เก่า→ใหม่';
+  renderFormTrainingTable();
+}
+function toggleAttSort(){
+  formAttSortDesc = !formAttSortDesc;
+  const btn = document.getElementById('f_att_sort_btn');
+  if(btn) btn.textContent = formAttSortDesc ? '📅 ใหม่→เก่า' : '📅 เก่า→ใหม่';
+  renderFormAttendanceTable();
+}
 
 function updateFormPhoto() {
   const frame = document.getElementById('formPhotoFrame');
@@ -483,31 +506,74 @@ function updateFormPhoto() {
 }
 
 function renderFormTrainingTable(){
+  const sorted = formTrainings.map((t,i)=>({...t,_i:i})).sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||''));
   const tbody = document.querySelector('#formTrainingTable tbody');
-  tbody.innerHTML = formTrainings.map((t,i)=>`
-    <tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td>
-    <td><button type="button" class="btn red btn-sm" onclick="removeFormTraining(${i})">ลบ</button></td></tr>
+  tbody.innerHTML = sorted.map(t=>`
+    <tr style="${formTrainingEditIdx===t._i?'background:#fffbe6;':''}">
+      <td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td>
+      <td style="white-space:nowrap;">
+        <button type="button" class="btn outline-teal btn-sm" onclick="editFormTraining(${t._i})">แก้ไข</button>
+        <button type="button" class="btn red btn-sm" onclick="removeFormTraining(${t._i})">ลบ</button>
+      </td>
+    </tr>
   `).join('') || '<tr><td colspan="5" style="text-align:center;color:#999;">ยังไม่มีข้อมูล</td></tr>';
+  document.getElementById('f_tr_add_btn').textContent = formTrainingEditIdx !== null ? '✓ อัปเดต' : '+ เพิ่ม';
+}
+
+function editFormTraining(i){
+  const t = formTrainings[i];
+  document.getElementById('f_tr_name').value = t.name;
+  document.getElementById('f_tr_date').value = t.date;
+  document.getElementById('f_tr_duration').value = t.duration;
+  document.getElementById('f_tr_location').value = t.location;
+  formTrainingEditIdx = i;
+  renderFormTrainingTable();
 }
 
 function renderFormAttendanceTable(){
+  const sorted = formAttendance.map((a,i)=>({...a,_i:i})).sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||''));
   const tbody = document.querySelector('#formAttendanceTable tbody');
-  tbody.innerHTML = formAttendance.map((a,i)=>`
-    <tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td>
-    <td><button type="button" class="btn red btn-sm" onclick="removeFormAttendance(${i})">ลบ</button></td></tr>
+  tbody.innerHTML = sorted.map(a=>`
+    <tr style="${formAttendanceEditIdx===a._i?'background:#fffbe6;':''}">
+      <td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td>
+      <td style="white-space:nowrap;">
+        <button type="button" class="btn outline-teal btn-sm" onclick="editFormAttendance(${a._i})">แก้ไข</button>
+        <button type="button" class="btn red btn-sm" onclick="removeFormAttendance(${a._i})">ลบ</button>
+      </td>
+    </tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ยังไม่มีข้อมูล</td></tr>';
+  document.getElementById('f_att_add_btn').textContent = formAttendanceEditIdx !== null ? '✓ อัปเดต' : '+ เพิ่ม';
+}
+
+function editFormAttendance(i){
+  const a = formAttendance[i];
+  document.getElementById('f_att_date').value = a.date;
+  document.getElementById('f_att_type').value = a.type;
+  document.getElementById('f_att_note').value = a.note;
+  formAttendanceEditIdx = i;
+  renderFormAttendanceTable();
 }
 
 function addFormAttendance(){
   const date = document.getElementById('f_att_date').value;
   if(!date){ alert('กรุณาเลือกวันที่'); return; }
-  formAttendance.push({date, type: document.getElementById('f_att_type').value, note: document.getElementById('f_att_note').value.trim()});
+  const entry = {date, type: document.getElementById('f_att_type').value, note: document.getElementById('f_att_note').value.trim()};
+  if(formAttendanceEditIdx !== null){
+    formAttendance[formAttendanceEditIdx] = entry;
+    formAttendanceEditIdx = null;
+  } else {
+    formAttendance.push(entry);
+  }
   document.getElementById('f_att_date').value='';
   document.getElementById('f_att_note').value='';
   renderFormAttendanceTable();
 }
 
-function removeFormAttendance(i){ formAttendance.splice(i,1); renderFormAttendanceTable(); }
+function removeFormAttendance(i){
+  formAttendance.splice(i,1);
+  if(formAttendanceEditIdx===i) formAttendanceEditIdx=null;
+  renderFormAttendanceTable();
+}
 
 function addFormTraining(){
   const name = document.getElementById('f_tr_name').value.trim();
@@ -515,7 +581,13 @@ function addFormTraining(){
   const duration = document.getElementById('f_tr_duration').value.trim();
   const location = document.getElementById('f_tr_location').value.trim();
   if(!name){ alert('กรุณากรอกชื่อหลักสูตร'); return; }
-  formTrainings.push({name, date, duration, location});
+  const entry = {name, date, duration, location};
+  if(formTrainingEditIdx !== null){
+    formTrainings[formTrainingEditIdx] = entry;
+    formTrainingEditIdx = null;
+  } else {
+    formTrainings.push(entry);
+  }
   document.getElementById('f_tr_name').value='';
   document.getElementById('f_tr_date').value='';
   document.getElementById('f_tr_duration').value='';
@@ -525,6 +597,7 @@ function addFormTraining(){
 
 function removeFormTraining(i){
   formTrainings.splice(i,1);
+  if(formTrainingEditIdx===i) formTrainingEditIdx=null;
   renderFormTrainingTable();
 }
 
@@ -539,9 +612,9 @@ function openAddModal(){
   document.getElementById('f_typeOther').style.display = 'none';
   document.getElementById('f_gender').value = '';
   document.getElementById('empModalBackdrop').dataset.editId = '';
-  formTrainings = [];
+  formTrainings = []; formTrainingEditIdx = null;
   renderFormTrainingTable();
-  formAttendance = [];
+  formAttendance = []; formAttendanceEditIdx = null;
   renderFormAttendanceTable();
   formPhoto = null;
   updateFormPhoto();
@@ -591,9 +664,9 @@ function openEditModal(id){
   document.getElementById('f_transferDate').value = e.transferDate||'';
   document.getElementById('f_resignDate').value = e.resignDate||'';
   document.getElementById('empModalBackdrop').dataset.editId = id;
-  formTrainings = JSON.parse(JSON.stringify(e.trainings||[]));
+  formTrainings = JSON.parse(JSON.stringify(e.trainings||[])); formTrainingEditIdx = null;
   renderFormTrainingTable();
-  formAttendance = JSON.parse(JSON.stringify(e.attendance||[]));
+  formAttendance = JSON.parse(JSON.stringify(e.attendance||[])); formAttendanceEditIdx = null;
   renderFormAttendanceTable();
   formPhoto = e.photo || null;
   updateFormPhoto();
@@ -704,12 +777,12 @@ function renderDetail(){
   document.getElementById('detailNoteInfo').innerHTML = dlItem('หมายเหตุ', e.note, true);
 
   const trBody = document.querySelector('#trainingTable tbody');
-  trBody.innerHTML = (e.trainings||[]).map(t=>`
+  trBody.innerHTML = (e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`
     <tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>';
 
   const atBody = document.querySelector('#attendanceTable tbody');
-  atBody.innerHTML = (e.attendance||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(a=>
+  atBody.innerHTML = (e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>
     `<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`
   ).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>';
 
@@ -817,7 +890,7 @@ function printEmployee(id){
     <div class="section-page"><h1>ข้อมูลฝึกอบรม</h1>
     <table>
       <tr><td class="label">ชื่อหลักสูตร</td><td class="label">วันที่</td><td class="label">ระยะเวลา</td><td class="label">สถานที่</td></tr>
-      ${(e.trainings||[]).map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
+      ${(e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     </div><div class="section-page"><h1>บันทึกการขาด / ลา / มาสาย</h1>
     ${(()=>{ const fy=currentFiscalYear(); const c=getAttendanceSummary(e,fy); return `
@@ -842,7 +915,7 @@ function printEmployee(id){
     </div>`; })()}
     <table>
       <tr><td class="label">วันที่</td><td class="label">ประเภท</td><td class="label">หมายเหตุ</td></tr>
-      ${(e.attendance||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(a=>`<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
+      ${(e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>`<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     <script>
       const realId = document.getElementById('idCardCell').textContent;
