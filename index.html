@@ -260,14 +260,50 @@
 
     <h3>ประวัติส่วนตัว</h3>
     <div class="form-grid">
-      <div><label>การศึกษา</label><input id="f_education"></div>
+      <div class="full">
+        <label>วุฒิการศึกษา</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">วุฒิพื้นฐาน</div>
+            <select id="f_educationBase">
+              <option value="">-- เลือก --</option>
+              <option>ต่ำกว่ามัธยมศึกษา</option>
+              <option>มัธยมศึกษาปีที่ 3</option>
+              <option>มัธยมศึกษาปีที่ 6</option>
+              <option>ปวช.</option>
+              <option>ปวส.</option>
+              <option>อื่นๆ</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">วุฒิสูงสุด</div>
+            <select id="f_educationHigh">
+              <option value="">-- เลือก --</option>
+              <option>ปริญญาตรี</option>
+              <option>ปริญญาโท</option>
+              <option>ปริญญาเอก</option>
+              <option>อื่นๆ</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div><label>วันที่เข้าทำงาน</label><input type="date" id="f_startDate"></div>
-      <div><label>เงินเดือน</label><input type="number" id="f_salary"></div>
       <div><label>เลขบัตรประชาชน</label><input id="f_idCard" maxlength="13"></div>
       <div><label>วันที่บรรจุ</label><input type="date" id="f_appointDate"></div>
       <div><label>ระยะเวลาบรรจุ</label><input id="f_appointDuration" readonly placeholder="คำนวณอัตโนมัติ" style="background:#f3f5f7;color:var(--muted);"></div>
       <div><label>วันที่ปรับภารกิจ</label><input type="date" id="f_transferDate"></div>
       <div><label>วันที่ลาออก</label><input type="date" id="f_resignDate"></div>
+    </div>
+    <h3>ข้อมูลเงินเดือน</h3>
+    <div class="form-grid">
+      <div><label>เงินเดือน</label><input type="number" id="f_salary" oninput="updateSalaryCalc()" placeholder="0"></div>
+      <div><label>เงินเพิ่มค่าครองชีพ</label><input type="number" id="f_salaryBonus" oninput="updateSalaryCalc()" placeholder="0"></div>
+      <div><label>คงเหลือ</label><input type="number" id="f_salaryRemaining" oninput="updateSalaryCalc()" placeholder="0"></div>
+      <div><label>กยศ</label><input type="number" id="f_gys" oninput="updateSalaryCalc()" placeholder="0"></div>
+      <div><label>สหกรณ์ออมทรัพย์</label><input type="number" id="f_coop" oninput="updateSalaryCalc()" placeholder="0"></div>
+      <div><label>ประกันสังคม</label><input type="number" id="f_socialSecurity" oninput="updateSalaryCalc()" placeholder="0"></div>
+      <div><label>รวมทั้งหมด</label><input id="f_salaryTotal" readonly placeholder="-" style="background:#f3f5f7;color:var(--muted);"></div>
+      <div><label>รับสุทธิ</label><input id="f_salaryNet" readonly placeholder="-" style="background:#f3f5f7;color:var(--muted);"></div>
     </div>
 
     <h3>ข้อมูลฝึกอบรม</h3>
@@ -283,9 +319,10 @@
       <button type="button" id="f_tr_add_btn" class="btn outline-teal btn-sm" onclick="addFormTraining()">+ เพิ่ม</button>
     </div>
 
-    <h3>โรงพยาบาลตามสิทธิ / เบอร์ติดต่อฉุกเฉิน</h3>
+    <h3>โรงพยาบาลตามสิทธิประกันสังคม / เบอร์ติดต่อฉุกเฉิน</h3>
     <div class="form-grid">
-      <div><label>โรงพยาบาลตามสิทธิ</label><input id="f_hospital"></div>
+      <div><label>โรงพยาบาลตามสิทธิประกันสังคม</label><input id="f_hospital"></div>
+      <div><label>ชื่อผู้ติดต่อฉุกเฉิน</label><input id="f_emergencyName" placeholder="ชื่อ-นามสกุล"></div>
       <div><label>เบอร์ติดต่อฉุกเฉิน</label><input id="f_emergencyContact" placeholder="เบอร์โทร" type="tel"></div>
     </div>
 
@@ -437,6 +474,34 @@ function formatIdCard(id){
   return id;
 }
 
+function formatPhone(p){
+  if(!p) return '';
+  const d=p.replace(/\D/g,'');
+  if(d.length===10) return d.replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3');
+  if(d.length===9)  return d.replace(/(\d{2})(\d{3})(\d{4})/,'$1-$2-$3');
+  return p;
+}
+const THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function toThaiDate(s){
+  if(!s) return '';
+  const d=new Date(s); if(isNaN(d)) return s;
+  return d.getDate()+' '+THAI_MONTHS[d.getMonth()]+' '+(d.getFullYear()+543);
+}
+function fmtMoney(v){ return (v!==''&&v!==null&&v!==undefined&&v!=='-'&&!isNaN(Number(v))&&Number(v)!==0) ? Number(v).toLocaleString() : (v==='-'?'-':''); }
+function updateSalaryCalc(){
+  const sal=parseFloat(document.getElementById('f_salary').value)||0;
+  const bon=parseFloat(document.getElementById('f_salaryBonus').value)||0;
+  const rem=parseFloat(document.getElementById('f_salaryRemaining').value)||0;
+  const income=sal+bon+rem;
+  const gys=parseFloat(document.getElementById('f_gys').value)||0;
+  const coop=parseFloat(document.getElementById('f_coop').value)||0;
+  const ss=parseFloat(document.getElementById('f_socialSecurity').value)||0;
+  const deduct=gys+coop+ss;
+  const net=income-deduct;
+  document.getElementById('f_salaryTotal').value=deduct?deduct.toLocaleString():'-';
+  document.getElementById('f_salaryNet').value=(income||deduct)?net.toLocaleString():'-';
+}
+function fmtEdu(e){ return [e.educationBase,e.educationHigh].filter(Boolean).join(' / ') || e.education || ''; }
 function renderStats(){
   document.getElementById('statTotal').textContent = employees.length;
 }
@@ -604,7 +669,7 @@ function removeFormTraining(i){
 function openAddModal(){
   currentDetailId = null;
   document.getElementById('empModalTitle').textContent = 'เพิ่มบุคลากร';
-  ['firstName','lastName','position','phone','idCard','education','startDate','salary','hospital','emergencyContact','note','birthDate','ageDisplay','appointDate','appointDuration','transferDate','resignDate'].forEach(f=>document.getElementById('f_'+f).value='');
+  ['firstName','lastName','position','phone','idCard','educationBase','educationHigh','startDate','salary','salaryBonus','salaryRemaining','gys','coop','socialSecurity','salaryTotal','salaryNet','hospital','emergencyName','emergencyContact','note','birthDate','ageDisplay','appointDate','appointDuration','transferDate','resignDate'].forEach(f=>{ const el=document.getElementById('f_'+f); if(el) el.value=''; });
   document.getElementById('f_positionOther').value = '';
   document.getElementById('f_positionOther').style.display = 'none';
   document.getElementById('f_type').selectedIndex = 0;
@@ -650,11 +715,19 @@ function openEditModal(id){
   }
   document.getElementById('f_phone').value = e.phone||'';
   document.getElementById('f_idCard').value = e.idCard||'';
-  document.getElementById('f_education').value = e.education||'';
+  document.getElementById('f_educationBase').value = e.educationBase||'';
+  document.getElementById('f_educationHigh').value = e.educationHigh||'';
   document.getElementById('f_startDate').value = e.startDate||'';
   document.getElementById('f_salary').value = e.salary||'';
+  document.getElementById('f_salaryBonus').value = e.salaryBonus||'';
+  document.getElementById('f_salaryRemaining').value = e.salaryRemaining||'';
+  document.getElementById('f_gys').value = e.gys||'';
+  document.getElementById('f_coop').value = e.coop||'';
+  document.getElementById('f_socialSecurity').value = e.socialSecurity||'';
   document.getElementById('f_hospital').value = e.hospital||'';
+  document.getElementById('f_emergencyName').value = e.emergencyName||'';
   document.getElementById('f_emergencyContact').value = e.emergencyContact||'';
+  updateSalaryCalc();
   document.getElementById('f_note').value = e.note||'';
   document.getElementById('f_gender').value = e.gender||'';
   document.getElementById('f_birthDate').value = e.birthDate||'';
@@ -688,10 +761,17 @@ function saveEmployee(){
       : document.getElementById('f_type').value,
     phone: document.getElementById('f_phone').value.trim(),
     idCard: document.getElementById('f_idCard').value.trim(),
-    education: document.getElementById('f_education').value.trim(),
+    educationBase: document.getElementById('f_educationBase').value,
+    educationHigh: document.getElementById('f_educationHigh').value,
     startDate: document.getElementById('f_startDate').value,
     salary: document.getElementById('f_salary').value,
+    salaryBonus: document.getElementById('f_salaryBonus').value,
+    salaryRemaining: document.getElementById('f_salaryRemaining').value,
+    gys: document.getElementById('f_gys').value,
+    coop: document.getElementById('f_coop').value,
+    socialSecurity: document.getElementById('f_socialSecurity').value,
     hospital: document.getElementById('f_hospital').value.trim(),
+    emergencyName: document.getElementById('f_emergencyName').value.trim(),
     emergencyContact: document.getElementById('f_emergencyContact').value.trim(),
     note: document.getElementById('f_note').value.trim(),
     gender: document.getElementById('f_gender').value,
@@ -755,24 +835,35 @@ function renderDetail(){
     dlItem('ชื่อ-นามสกุล', `${e.firstName||''} ${e.lastName||''}`.trim()) +
     dlItem('ตำแหน่ง', e.position) +
     dlItem('ประเภท', e.type) +
-    dlItem('เบอร์โทร', e.phone) +
+    dlItem('เบอร์โทร', formatPhone(e.phone)) +
     dlItem('เพศ', e.gender) +
-    dlItem('วันเกิด', e.birthDate) +
+    dlItem('วันเกิด', toThaiDate(e.birthDate)) +
     dlItem('อายุ', calcAge(e.birthDate));
 
+  const sal=parseFloat(e.salary)||0, bon=parseFloat(e.salaryBonus)||0, rem=parseFloat(e.salaryRemaining)||0;
+  const income=sal+bon+rem, gys=parseFloat(e.gys)||0, coop=parseFloat(e.coop)||0, ss=parseFloat(e.socialSecurity)||0;
+  const deduct=gys+coop+ss;
   document.getElementById('detailPersonalInfo').innerHTML =
-    dlItem('การศึกษา', e.education) +
-    dlItem('วันที่เข้าทำงาน', e.startDate) +
-    dlItem('เงินเดือน', e.salary?Number(e.salary).toLocaleString():'') +
+    dlItem('วุฒิการศึกษา', fmtEdu(e)) +
+    dlItem('วันที่เข้าทำงาน', toThaiDate(e.startDate)) +
     dlItem('เลขบัตรประชาชน', formatIdCard(e.idCard)) +
-    dlItem('วันที่บรรจุ', e.appointDate) +
+    dlItem('วันที่บรรจุ', toThaiDate(e.appointDate)) +
     dlItem('ระยะเวลาบรรจุ', calcAge(e.appointDate)) +
-    dlItem('วันที่ปรับภารกิจ', e.transferDate) +
-    dlItem('วันที่ลาออก', e.resignDate);
+    dlItem('วันที่ปรับภารกิจ', toThaiDate(e.transferDate)) +
+    dlItem('วันที่ลาออก', toThaiDate(e.resignDate)) +
+    dlItem('เงินเดือน', fmtMoney(e.salary)) +
+    dlItem('เงินเพิ่มค่าครองชีพ', fmtMoney(e.salaryBonus)||'-') +
+    dlItem('คงเหลือ', fmtMoney(e.salaryRemaining)||'-') +
+    dlItem('กยศ', fmtMoney(e.gys)||'-') +
+    dlItem('สหกรณ์ออมทรัพย์', fmtMoney(e.coop)||'-') +
+    dlItem('ประกันสังคม', fmtMoney(e.socialSecurity)||'-') +
+    dlItem('รวมทั้งหมด (หักรายการ)', deduct?deduct.toLocaleString():'-') +
+    dlItem('รับสุทธิ', (income||deduct)?(income-deduct).toLocaleString():'-');
 
   document.getElementById('detailHospitalInfo').innerHTML =
-    dlItem('โรงพยาบาลตามสิทธิ', e.hospital) +
-    dlItem('เบอร์ติดต่อฉุกเฉิน', e.emergencyContact);
+    dlItem('โรงพยาบาลตามสิทธิประกันสังคม', e.hospital) +
+    dlItem('ชื่อผู้ติดต่อฉุกเฉิน', e.emergencyName) +
+    dlItem('เบอร์ติดต่อฉุกเฉิน', formatPhone(e.emergencyContact));
 
   document.getElementById('detailNoteInfo').innerHTML = dlItem('หมายเหตุ', e.note, true);
 
@@ -871,20 +962,29 @@ function printEmployee(id){
       <tr><td class="label">ชื่อ-นามสกุล</td><td>${esc(e.firstName)} ${esc(e.lastName)}</td></tr>
       <tr><td class="label">ตำแหน่ง</td><td>${esc(e.position)}</td></tr>
       <tr><td class="label">ประเภท</td><td>${esc(e.type)}</td></tr>
-      <tr><td class="label">เบอร์โทร</td><td>${esc(e.phone)}</td></tr>
+      <tr><td class="label">เบอร์โทร</td><td>${formatPhone(e.phone)}</td></tr>
       <tr><td class="label">เพศ</td><td>${esc(e.gender)}</td></tr>
-      <tr><td class="label">วันเกิด</td><td>${esc(e.birthDate)}</td></tr>
+      <tr><td class="label">วันเกิด</td><td>${toThaiDate(e.birthDate)}</td></tr>
       <tr><td class="label">อายุ</td><td>${calcAge(e.birthDate)}</td></tr>
       <tr><td class="label">เลขบัตรประชาชน</td><td><span id="idCardCell">${formatIdCard(e.idCard)}</span> <button class="toggle-btn" onclick="toggleId()" style="margin-left:8px;padding:3px 10px;font-size:12px;">🔒 ซ่อน</button></td></tr>
-      <tr><td class="label">การศึกษา</td><td>${esc(e.education)}</td></tr>
-      <tr><td class="label">วันที่เข้าทำงาน</td><td>${esc(e.startDate)}</td></tr>
-      <tr><td class="label">เงินเดือน</td><td>${e.salary?Number(e.salary).toLocaleString():''}</td></tr>
-      <tr><td class="label">วันที่บรรจุ</td><td>${esc(e.appointDate)}</td></tr>
+      <tr><td class="label">วุฒิการศึกษา</td><td>${fmtEdu(e)}</td></tr>
+      <tr><td class="label">วันที่เข้าทำงาน</td><td>${toThaiDate(e.startDate)}</td></tr>
+      <tr><td class="label">วันที่บรรจุ</td><td>${toThaiDate(e.appointDate)}</td></tr>
       <tr><td class="label">ระยะเวลาบรรจุ</td><td>${calcAge(e.appointDate)}</td></tr>
-      <tr><td class="label">วันที่ปรับภารกิจ</td><td>${esc(e.transferDate)}</td></tr>
-      <tr><td class="label">วันที่ลาออก</td><td>${esc(e.resignDate)}</td></tr>
-      <tr><td class="label">โรงพยาบาลตามสิทธิ</td><td>${esc(e.hospital)}</td></tr>
-      <tr><td class="label">เบอร์ติดต่อฉุกเฉิน</td><td>${esc(e.emergencyContact)}</td></tr>
+      <tr><td class="label">วันที่ปรับภารกิจ</td><td>${toThaiDate(e.transferDate)}</td></tr>
+      <tr><td class="label">วันที่ลาออก</td><td>${toThaiDate(e.resignDate)}</td></tr>
+      <tr><td colspan="2" style="background:#f0f0f0;font-weight:700;font-size:12px;padding:5px 10px;">ข้อมูลเงินเดือน</td></tr>
+      <tr><td class="label">เงินเดือน</td><td>${fmtMoney(e.salary)||'-'}</td></tr>
+      <tr><td class="label">เงินเพิ่มค่าครองชีพ</td><td>${fmtMoney(e.salaryBonus)||'-'}</td></tr>
+      <tr><td class="label">คงเหลือ</td><td>${fmtMoney(e.salaryRemaining)||'-'}</td></tr>
+      <tr><td colspan="2" style="background:#f0f0f0;font-weight:700;font-size:12px;padding:5px 10px;">หัก: กยศ / สหกรณ์ / ประกันสังคม</td></tr>
+      <tr><td class="label">กยศ</td><td>${fmtMoney(e.gys)||'-'}</td></tr>
+      <tr><td class="label">สหกรณ์ออมทรัพย์</td><td>${fmtMoney(e.coop)||'-'}</td></tr>
+      <tr><td class="label">ประกันสังคม</td><td>${fmtMoney(e.socialSecurity)||'-'}</td></tr>
+      ${(()=>{ const s=parseFloat(e.salary)||0,b=parseFloat(e.salaryBonus)||0,r=parseFloat(e.salaryRemaining)||0,inc=s+b+r,g=parseFloat(e.gys)||0,c=parseFloat(e.coop)||0,ss=parseFloat(e.socialSecurity)||0,ded=g+c+ss; return `<tr style="background:#fff9e6;"><td class="label">รวมทั้งหมด (หักรายการ)</td><td style="font-weight:700;">${ded?ded.toLocaleString():'-'}</td></tr><tr style="background:#e8f7fa;"><td class="label">รับสุทธิ</td><td style="font-weight:700;color:#0c5460;">${(inc||ded)?(inc-ded).toLocaleString():'-'}</td></tr>`; })()}
+      <tr><td class="label">โรงพยาบาลตามสิทธิประกันสังคม</td><td>${esc(e.hospital)}</td></tr>
+      <tr><td class="label">ชื่อผู้ติดต่อฉุกเฉิน</td><td>${esc(e.emergencyName)}</td></tr>
+      <tr><td class="label">เบอร์ติดต่อฉุกเฉิน</td><td>${formatPhone(e.emergencyContact)}</td></tr>
       <tr><td class="label">อื่นๆ</td><td>${esc(e.note)}</td></tr>
     </table>
     <div class="section-page"><h1>ข้อมูลฝึกอบรม</h1>
