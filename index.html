@@ -1504,8 +1504,8 @@ syncToSheet();
   });
   // Auto re-check every minute
   setInterval(()=>{ if(!_checkSession()) _showLogin(); }, 60000);
-  // ดึงข้อมูลล่าสุดจากชีตกลางทุก 30 วินาที เพื่อซิงค์ข้ามเครื่อง
-  setInterval(()=>{ if(_checkSession()) pullFromSheet(); }, 30000);
+  // ดึงข้อมูลล่าสุดจากชีตกลางทุก 8 วินาที เพื่อซิงค์ข้ามเครื่อง
+  setInterval(()=>{ if(_checkSession()) pullFromSheet(); }, 8000);
 
 </script>
 </body>
