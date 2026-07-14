@@ -378,9 +378,13 @@
       <button type="button" id="f_tr_add_btn" class="btn outline-teal btn-sm" onclick="addFormTraining()">+ เพิ่ม</button>
     </div>
 
-    <h3>โรงพยาบาลตามสิทธิประกันสังคม / เบอร์ติดต่อฉุกเฉิน</h3>
+    <h3>โรงพยาบาลตามสิทธิประกันสังคม</h3>
     <div class="form-grid">
       <div><label>โรงพยาบาลตามสิทธิประกันสังคม</label><input id="f_hospital"></div>
+    </div>
+
+    <h3>เบอร์ติดต่อฉุกเฉิน</h3>
+    <div class="form-grid">
       <div><label>ชื่อผู้ติดต่อฉุกเฉิน</label><input id="f_emergencyName" placeholder="ชื่อ-นามสกุล"></div>
       <div><label>เบอร์ติดต่อฉุกเฉิน</label><input id="f_emergencyContact" placeholder="เบอร์โทร" type="tel"></div>
     </div>
@@ -437,8 +441,11 @@
     <h3>ข้อมูลฝึกอบรม</h3>
     <table class="subtable" id="trainingTable"><thead><tr><th>ชื่อหลักสูตร</th><th>วันที่</th><th>ระยะเวลา</th><th>สถานที่</th></tr></thead><tbody></tbody></table>
 
-    <h3>โรงพยาบาลตามสิทธิ / เบอร์ติดต่อฉุกเฉิน</h3>
+    <h3>โรงพยาบาลตามสิทธิ</h3>
     <div class="detail-card"><div class="detail-grid" id="detailHospitalInfo"></div></div>
+
+    <h3>เบอร์ติดต่อฉุกเฉิน</h3>
+    <div class="detail-card"><div class="detail-grid" id="detailEmergencyInfo"></div></div>
 
     <h3>อื่นๆ</h3>
     <div class="detail-card"><div class="detail-grid" id="detailNoteInfo"></div></div>
@@ -922,7 +929,9 @@ function renderDetail(){
     dlItem('รับสุทธิ', (income||deduct)?(income-deduct).toLocaleString():'-');
 
   document.getElementById('detailHospitalInfo').innerHTML =
-    dlItem('โรงพยาบาลตามสิทธิประกันสังคม', e.hospital) +
+    dlItem('โรงพยาบาลตามสิทธิประกันสังคม', e.hospital);
+
+  document.getElementById('detailEmergencyInfo').innerHTML =
     dlItem('ชื่อผู้ติดต่อฉุกเฉิน', e.emergencyName) +
     dlItem('เบอร์ติดต่อฉุกเฉิน', formatPhone(e.emergencyContact));
 
@@ -1071,12 +1080,20 @@ function printEmployee(id){
       </div>
     </div>
 
-    <!-- ===== โรงพยาบาลตามสิทธิ / เบอร์ติดต่อฉุกเฉิน ===== -->
+    <!-- ===== โรงพยาบาลตามสิทธิ ===== -->
     <div class="section-box">
-      <h2 class="section-title">โรงพยาบาลตามสิทธิ / เบอร์ติดต่อฉุกเฉิน</h2>
+      <h2 class="section-title">โรงพยาบาลตามสิทธิ</h2>
       <table class="info-table">
         <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
         <tr><td class="label">โรงพยาบาลตามสิทธิประกันสังคม</td><td>${esc(e.hospital)}</td></tr>
+      </table>
+    </div>
+
+    <!-- ===== เบอร์ติดต่อฉุกเฉิน ===== -->
+    <div class="section-box">
+      <h2 class="section-title">เบอร์ติดต่อฉุกเฉิน</h2>
+      <table class="info-table">
+        <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
         <tr><td class="label">ชื่อผู้ติดต่อฉุกเฉิน</td><td>${esc(e.emergencyName)}</td></tr>
         <tr><td class="label">เบอร์ติดต่อฉุกเฉิน</td><td>${formatPhone(e.emergencyContact)}</td></tr>
         <tr><td class="label">อื่นๆ</td><td>${esc(e.note)}</td></tr>
