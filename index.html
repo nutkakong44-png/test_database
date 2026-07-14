@@ -501,7 +501,7 @@ let employees = JSON.parse(localStorage.getItem('staffData_klongbangplakod') || 
 let currentDetailId = null;
 
 // ซิงค์ข้อมูลขึ้น Google Sheet อัตโนมัติเบื้องหลัง (ไม่มี UI ใดๆ ในแอพ)
-const SHEET_SYNC_URL = 'https://script.google.com/macros/s/AKfycbwP1rvVHbxsm3gQtUzICVCfOTOLbyPhaCW7Dg6Ki6r8zEcUaKaiFVMDfGA2_egP5B-7cg/exec';
+const SHEET_SYNC_URL = 'https://script.google.com/macros/s/AKfycbxvg8SrXQkjXAnbyXfN-Ee6YVuOBvw_JoRmkWMJyBO4bQmNvSrI2bVih-0VSPal0IO4SQ/exec';
 
 function syncToSheet(){
   if(!SHEET_SYNC_URL) return;
@@ -519,6 +519,27 @@ function save(){
   localStorage.setItem('staffData_klongbangplakod', JSON.stringify(employees));
   renderAll();
   syncToSheet();
+}
+
+let _pulling = false;
+async function pullFromSheet(){
+  if(!SHEET_SYNC_URL || _pulling) return;
+  _pulling = true;
+  try{
+    const res = await fetch(SHEET_SYNC_URL, { method: 'GET' });
+    const json = await res.json();
+    if(json && json.status === 'ok' && Array.isArray(json.data)){
+      if(json.data.length > 0){
+        employees = json.data;
+        localStorage.setItem('staffData_klongbangplakod', JSON.stringify(employees));
+        renderAll();
+        if(typeof currentDetailId !== 'undefined' && currentDetailId) openDetail(currentDetailId);
+      } else if(employees.length > 0){
+        syncToSheet();
+      }
+    }
+  }catch(err){ /* ออฟไลน์หรือดึงไม่สำเร็จ ทำงานกับข้อมูลในเครื่องต่อไปได้ */ }
+  finally{ _pulling = false; }
 }
 
 function uid(){ return 'e' + Date.now() + Math.random().toString(36).slice(2,7); }
@@ -1462,6 +1483,7 @@ syncToSheet();
     if((_USERS[u] && _USERS[u]===h) || (regUsers[u] && regUsers[u]===h)){
       localStorage.setItem(_SESSION_KEY, JSON.stringify({user:u, exp:Date.now()+_SESSION_MS}));
       _showApp();
+      pullFromSheet();
     } else {
       errEl.textContent = 'Username หรือ Password ไม่ถูกต้อง';
       document.getElementById('loginPass').value='';
@@ -1478,9 +1500,12 @@ syncToSheet();
   // Check session on load
   window.addEventListener('DOMContentLoaded', ()=>{
     if(!_checkSession()) _showLogin();
+    else pullFromSheet();
   });
   // Auto re-check every minute
   setInterval(()=>{ if(!_checkSession()) _showLogin(); }, 60000);
+  // ดึงข้อมูลล่าสุดจากชีตกลางทุก 30 วินาที เพื่อซิงค์ข้ามเครื่อง
+  setInterval(()=>{ if(_checkSession()) pullFromSheet(); }, 30000);
 
 </script>
 </body>
