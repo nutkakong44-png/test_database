@@ -632,7 +632,7 @@ function renderFormTrainingTable(){
   const tbody = document.querySelector('#formTrainingTable tbody');
   tbody.innerHTML = sorted.map(t=>`
     <tr style="${formTrainingEditIdx===t._i?'background:#fffbe6;':''}">
-      <td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td>
+      <td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td>
       <td style="white-space:nowrap;">
         <button type="button" class="btn outline-teal btn-sm" onclick="editFormTraining(${t._i})">แก้ไข</button>
         <button type="button" class="btn red btn-sm" onclick="removeFormTraining(${t._i})">ลบ</button>
@@ -657,7 +657,7 @@ function renderFormAttendanceTable(){
   const tbody = document.querySelector('#formAttendanceTable tbody');
   tbody.innerHTML = sorted.map(a=>`
     <tr style="${formAttendanceEditIdx===a._i?'background:#fffbe6;':''}">
-      <td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td>
+      <td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td>
       <td style="white-space:nowrap;">
         <button type="button" class="btn outline-teal btn-sm" onclick="editFormAttendance(${a._i})">แก้ไข</button>
         <button type="button" class="btn red btn-sm" onclick="removeFormAttendance(${a._i})">ลบ</button>
@@ -927,12 +927,12 @@ function renderDetail(){
 
   const trBody = document.querySelector('#trainingTable tbody');
   trBody.innerHTML = (e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`
-    <tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>
+    <tr><td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>';
 
   const atBody = document.querySelector('#attendanceTable tbody');
   atBody.innerHTML = (e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>
-    `<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`
+    `<tr><td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`
   ).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>';
 
   populateFyDropdown(e);
@@ -1082,7 +1082,7 @@ function printEmployee(id){
     <div class="section-page"><h1>ข้อมูลฝึกอบรม</h1>
     <table>
       <tr><td class="label">ชื่อหลักสูตร</td><td class="label">วันที่</td><td class="label">ระยะเวลา</td><td class="label">สถานที่</td></tr>
-      ${(e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
+      ${(e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`<tr><td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     </div><div class="section-page"><h1>บันทึกการขาด / ลา / มาสาย</h1>
     ${(()=>{ const fy=currentFiscalYear(); const c=getAttendanceSummary(e,fy); return `
@@ -1107,7 +1107,7 @@ function printEmployee(id){
     </div>`; })()}
     <table>
       <tr><td class="label">วันที่</td><td class="label">ประเภท</td><td class="label">หมายเหตุ</td></tr>
-      ${(e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>`<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
+      ${(e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>`<tr><td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     <script>
       const realId = document.getElementById('idCardCell').textContent;
