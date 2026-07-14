@@ -335,7 +335,7 @@
             </select>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">สำเร็จการศึกษาระดับ</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">วุฒิการศึกษาสูงสุด</div>
             <select id="f_educationHigh">
               <option value="">-- เลือก --</option>
               <option>ปริญญาตรี</option>
@@ -361,6 +361,19 @@
       <div><label>กยศ</label><input type="number" id="f_gys" oninput="updateSalaryCalc()" placeholder="0"></div>
       <div><label>สหกรณ์ออมทรัพย์</label><input type="number" id="f_coop" oninput="updateSalaryCalc()" placeholder="0"></div>
       <div><label>ประกันสังคม</label><input type="number" id="f_socialSecurity" oninput="updateSalaryCalc()" placeholder="0"></div>
+    </div>
+
+    <div style="margin-top:6px;">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">รายการหักอื่นๆ</label>
+      <table class="subtable" id="formSalaryOtherTable"><thead><tr><th>รายการ</th><th>จำนวนเงิน</th><th></th></tr></thead><tbody></tbody></table>
+      <div class="inline-add">
+        <input id="f_so_name" placeholder="ชื่อรายการ">
+        <input id="f_so_amount" type="number" placeholder="จำนวนเงิน">
+        <button type="button" id="f_so_add_btn" class="btn outline-teal btn-sm" onclick="addFormSalaryOther()">+ เพิ่ม</button>
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:8px;">
       <div><label>รวมทั้งหมด</label><input id="f_salaryTotal" readonly placeholder="-" style="background:#f3f5f7;color:var(--muted);"></div>
       <div><label>รับสุทธิ</label><input id="f_salaryNet" readonly placeholder="-" style="background:#f3f5f7;color:var(--muted);"></div>
     </div>
@@ -378,9 +391,10 @@
       <button type="button" id="f_tr_add_btn" class="btn outline-teal btn-sm" onclick="addFormTraining()">+ เพิ่ม</button>
     </div>
 
-    <h3>โรงพยาบาลตามสิทธิประกันสังคม</h3>
-    <div class="form-grid">
-      <div><label>โรงพยาบาลตามสิทธิประกันสังคม</label><input id="f_hospital"></div>
+    <h3>โรงพยาบาลตามสิทธิ</h3>
+    <div class="form-grid" id="formHospitalList"></div>
+    <div style="margin-bottom:8px;">
+      <button type="button" class="btn outline-teal btn-sm" onclick="addFormHospitalField()">+ เพิ่มสิทธิอื่นๆ</button>
     </div>
 
     <h3>เบอร์ติดต่อฉุกเฉิน</h3>
@@ -532,6 +546,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function renderAll(){ renderTable(); renderStats(); }
 
 function esc(s){ return (s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hospLabel(i){ return i===0 ? 'โรงพยาบาลตามสิทธิ' : 'สิทธิอื่นๆ'; }
 
 function formatIdCard(id){
   if(!id) return '';
@@ -562,7 +577,8 @@ function updateSalaryCalc(){
   const gys=parseFloat(document.getElementById('f_gys').value)||0;
   const coop=parseFloat(document.getElementById('f_coop').value)||0;
   const ss=parseFloat(document.getElementById('f_socialSecurity').value)||0;
-  const deduct=gys+coop+ss;
+  const others=(formSalaryOthers||[]).reduce((s,o)=>s+(parseFloat(o.amount)||0),0);
+  const deduct=gys+coop+ss+others;
   const net=rem-deduct;
   document.getElementById('f_salaryTotal').value=deduct?deduct.toLocaleString():'-';
   document.getElementById('f_salaryNet').value=(rem||deduct)?net.toLocaleString():'-';
@@ -601,6 +617,8 @@ function renderTable(){
 // ---- Add/Edit ----
 let formTrainings = [];
 let formAttendance = [];
+let formSalaryOthers = [];
+let formHospitals = [''];
 let formPhoto = null;
 let formTrainingEditIdx = null;
 let formAttendanceEditIdx = null;
@@ -732,6 +750,57 @@ function removeFormTraining(i){
   renderFormTrainingTable();
 }
 
+function renderFormSalaryOtherTable(){
+  const tbody = document.querySelector('#formSalaryOtherTable tbody');
+  tbody.innerHTML = formSalaryOthers.map((o,i)=>`
+    <tr>
+      <td>${esc(o.name)}</td><td>${fmtMoney(o.amount)||'-'}</td>
+      <td style="white-space:nowrap;"><button type="button" class="btn red btn-sm" onclick="removeFormSalaryOther(${i})">ลบ</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ยังไม่มีข้อมูล</td></tr>';
+}
+
+function addFormSalaryOther(){
+  const name = document.getElementById('f_so_name').value.trim();
+  const amount = document.getElementById('f_so_amount').value;
+  if(!name){ alert('กรุณากรอกชื่อรายการ'); return; }
+  formSalaryOthers.push({name, amount});
+  document.getElementById('f_so_name').value='';
+  document.getElementById('f_so_amount').value='';
+  renderFormSalaryOtherTable();
+  updateSalaryCalc();
+}
+
+function removeFormSalaryOther(i){
+  formSalaryOthers.splice(i,1);
+  renderFormSalaryOtherTable();
+  updateSalaryCalc();
+}
+
+function renderFormHospitalList(){
+  const wrap = document.getElementById('formHospitalList');
+  wrap.innerHTML = formHospitals.map((h,i)=>`
+    <div>
+      <label>${hospLabel(i)}</label>
+      <div style="display:flex;gap:6px;">
+        <input value="${esc(h)}" oninput="formHospitals[${i}]=this.value" style="flex:1;">
+        ${formHospitals.length>1?`<button type="button" class="btn red btn-sm" onclick="removeFormHospital(${i})">ลบ</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function addFormHospitalField(){
+  formHospitals.push('');
+  renderFormHospitalList();
+}
+
+function removeFormHospital(i){
+  formHospitals.splice(i,1);
+  if(formHospitals.length===0) formHospitals=[''];
+  renderFormHospitalList();
+}
+
 function openAddModal(){
   currentDetailId = null;
   document.getElementById('empModalTitle').textContent = 'เพิ่มบุคลากร';
@@ -747,6 +816,11 @@ function openAddModal(){
   renderFormTrainingTable();
   formAttendance = []; formAttendanceEditIdx = null;
   renderFormAttendanceTable();
+  formSalaryOthers = [];
+  renderFormSalaryOtherTable();
+  formHospitals = [''];
+  renderFormHospitalList();
+  updateSalaryCalc();
   formPhoto = null;
   updateFormPhoto();
   document.getElementById('empModalBackdrop').classList.add('show');
@@ -790,8 +864,11 @@ function openEditModal(id){
   document.getElementById('f_gys').value = e.gys||'';
   document.getElementById('f_coop').value = e.coop||'';
   document.getElementById('f_socialSecurity').value = e.socialSecurity||'';
+  formSalaryOthers = JSON.parse(JSON.stringify(e.salaryOthers||[]));
+  renderFormSalaryOtherTable();
   updateSalaryCalc();
-  document.getElementById('f_hospital').value = e.hospital||'';
+  formHospitals = (e.hospitals && e.hospitals.length) ? JSON.parse(JSON.stringify(e.hospitals)) : (e.hospital ? [e.hospital] : ['']);
+  renderFormHospitalList();
   document.getElementById('f_emergencyName').value = e.emergencyName||'';
   document.getElementById('f_emergencyContact').value = e.emergencyContact||'';
   updateSalaryCalc();
@@ -837,10 +914,11 @@ function saveEmployee(){
     gys: document.getElementById('f_gys').value,
     coop: document.getElementById('f_coop').value,
     socialSecurity: document.getElementById('f_socialSecurity').value,
-    hospital: document.getElementById('f_hospital').value.trim(),
+    hospitals: formHospitals.map(h=>(h||'').trim()).filter(Boolean),
     emergencyName: document.getElementById('f_emergencyName').value.trim(),
     emergencyContact: document.getElementById('f_emergencyContact').value.trim(),
     note: document.getElementById('f_note').value.trim(),
+    salaryOthers: formSalaryOthers,
     gender: document.getElementById('f_gender').value,
     birthDate: document.getElementById('f_birthDate').value,
     appointDate: document.getElementById('f_appointDate').value,
@@ -908,11 +986,12 @@ function renderDetail(){
     dlItem('อายุ', calcAge(e.birthDate));
 
   const sal=parseFloat(e.salary)||0, bon=parseFloat(e.salaryBonus)||0;
+  const otherDeduct=(e.salaryOthers||[]).reduce((s,o)=>s+(parseFloat(o.amount)||0),0);
   const income=sal+bon, gys=parseFloat(e.gys)||0, coop=parseFloat(e.coop)||0, ss=parseFloat(e.socialSecurity)||0;
-  const deduct=gys+coop+ss;
+  const deduct=gys+coop+ss+otherDeduct;
   document.getElementById('detailPersonalInfo').innerHTML =
     dlItem('วุฒิการศึกษาที่ใช้ในการสมัคร', e.educationBase||'-') +
-    dlItem('สำเร็จการศึกษาระดับ', e.educationHigh||'-') +
+    dlItem('วุฒิการศึกษาสูงสุด', e.educationHigh||'-') +
     dlItem('วันที่เข้าทำงาน', toThaiDate(e.startDate)) +
     dlItem('เลขบัตรประชาชน', formatIdCard(e.idCard)) +
     dlItem('วันที่บรรจุ', toThaiDate(e.appointDate)) +
@@ -925,11 +1004,12 @@ function renderDetail(){
     dlItem('กยศ', fmtMoney(e.gys)||'-') +
     dlItem('สหกรณ์ออมทรัพย์', fmtMoney(e.coop)||'-') +
     dlItem('ประกันสังคม', fmtMoney(e.socialSecurity)||'-') +
+    (e.salaryOthers||[]).map(o=>dlItem('หัก '+(o.name||'อื่นๆ'), fmtMoney(o.amount)||'-')).join('') +
     dlItem('รวมทั้งหมด (หักรายการ)', deduct?deduct.toLocaleString():'-') +
     dlItem('รับสุทธิ', (income||deduct)?(income-deduct).toLocaleString():'-');
 
   document.getElementById('detailHospitalInfo').innerHTML =
-    dlItem('โรงพยาบาลตามสิทธิประกันสังคม', e.hospital);
+    ((e.hospitals&&e.hospitals.length) ? e.hospitals : (e.hospital?[e.hospital]:[])).map((h,i)=>dlItem(hospLabel(i), h)).join('') || dlItem('โรงพยาบาลตามสิทธิ', '-');
 
   document.getElementById('detailEmergencyInfo').innerHTML =
     dlItem('ชื่อผู้ติดต่อฉุกเฉิน', e.emergencyName) +
@@ -1058,7 +1138,7 @@ function printEmployee(id){
       <table class="info-table">
         <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
         <tr><td class="label">วุฒิการศึกษาที่ใช้ในการสมัคร</td><td>${esc(e.educationBase)||'-'}</td></tr>
-        <tr><td class="label">สำเร็จการศึกษาระดับ</td><td>${esc(e.educationHigh)||'-'}</td></tr>
+        <tr><td class="label">วุฒิการศึกษาสูงสุด</td><td>${esc(e.educationHigh)||'-'}</td></tr>
         <tr><td class="label">วันที่เข้าทำงาน</td><td>${toThaiDate(e.startDate)}</td></tr>
         <tr><td class="label">วันที่บรรจุ</td><td>${toThaiDate(e.appointDate)}</td></tr>
         <tr><td class="label">ระยะเวลาบรรจุ</td><td>${calcAge(e.appointDate)}</td></tr>
@@ -1075,7 +1155,8 @@ function printEmployee(id){
         <tr style="background:#fff3cd;"><td class="label" style="font-style:italic;color:#666;">หัก กยศ</td><td style="color:#666;">${fmtMoney(e.gys)||'-'}</td></tr>
         <tr style="background:#fff3cd;"><td class="label" style="font-style:italic;color:#666;">หัก สหกรณ์ออมทรัพย์</td><td style="color:#666;">${fmtMoney(e.coop)||'-'}</td></tr>
         <tr style="background:#fff3cd;"><td class="label" style="font-style:italic;color:#666;">หัก ประกันสังคม</td><td style="color:#666;">${fmtMoney(e.socialSecurity)||'-'}</td></tr>
-        ${(()=>{ const s=parseFloat(e.salary)||0,b=parseFloat(e.salaryBonus)||0,inc=s+b,g=parseFloat(e.gys)||0,c=parseFloat(e.coop)||0,ss=parseFloat(e.socialSecurity)||0,ded=g+c+ss; return `<tr style="background:#fff9e6;"><td class="label" style="font-weight:700;">รวมหักทั้งหมด</td><td style="font-weight:700;">${ded?ded.toLocaleString():'-'}</td></tr><tr style="background:#e8f7fa;"><td class="label" style="font-weight:700;color:#0c5460;">รับสุทธิ</td><td style="font-weight:700;color:#0c5460;">${(inc||ded)?(inc-ded).toLocaleString():'-'}</td></tr>`; })()}
+        ${(e.salaryOthers||[]).map(o=>`<tr style="background:#fff3cd;"><td class="label" style="font-style:italic;color:#666;">หัก ${esc(o.name)}</td><td style="color:#666;">${fmtMoney(o.amount)||'-'}</td></tr>`).join('')}
+        ${(()=>{ const s=parseFloat(e.salary)||0,b=parseFloat(e.salaryBonus)||0,inc=s+b,g=parseFloat(e.gys)||0,c=parseFloat(e.coop)||0,ss=parseFloat(e.socialSecurity)||0,oth=(e.salaryOthers||[]).reduce((a,o)=>a+(parseFloat(o.amount)||0),0),ded=g+c+ss+oth; return `<tr style="background:#fff9e6;"><td class="label" style="font-weight:700;">รวมหักทั้งหมด</td><td style="font-weight:700;">${ded?ded.toLocaleString():'-'}</td></tr><tr style="background:#e8f7fa;"><td class="label" style="font-weight:700;color:#0c5460;">รับสุทธิ</td><td style="font-weight:700;color:#0c5460;">${(inc||ded)?(inc-ded).toLocaleString():'-'}</td></tr>`; })()}
       </table>
       </div>
     </div>
@@ -1085,7 +1166,7 @@ function printEmployee(id){
       <h2 class="section-title">โรงพยาบาลตามสิทธิ</h2>
       <table class="info-table">
         <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
-        <tr><td class="label">โรงพยาบาลตามสิทธิประกันสังคม</td><td>${esc(e.hospital)}</td></tr>
+        ${(()=>{ const list=(e.hospitals&&e.hospitals.length)?e.hospitals:(e.hospital?[e.hospital]:[]); return list.length ? list.map((h,i)=>`<tr><td class="label">${hospLabel(i)}</td><td>${esc(h)}</td></tr>`).join('') : `<tr><td class="label">โรงพยาบาลตามสิทธิ</td><td>-</td></tr>`; })()}
       </table>
     </div>
 
