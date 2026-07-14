@@ -135,22 +135,55 @@
 <body>
 
 <!-- ===== LOGIN OVERLAY ===== -->
-<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0c2f44,#0f7d92);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;">
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0c2f44,#0f7d92);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:36px 36px 28px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;">
     <div style="width:90px;height:90px;margin:0 auto 12px;">
       <img src="logo.png" style="width:100%;height:100%;object-fit:contain;border-radius:50%;" onerror="this.style.display='none'">
     </div>
-    <div style="font-size:18px;font-weight:700;color:#0c2f44;margin-bottom:4px;">ระบบข้อมูลบุคลากร</div>
-    <div style="font-size:12px;color:#888;margin-bottom:24px;">อบต.ในคลองบางปลากด กองช่าง</div>
-    <input id="loginUser" type="text" placeholder="Username" autocomplete="username"
-      style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit;outline:none;"
-      onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
-    <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password"
-      style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:6px;font-family:inherit;outline:none;"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <div id="loginError" style="font-size:12px;color:#dc3545;min-height:18px;margin-bottom:10px;"></div>
-    <button onclick="doLogin()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0c2f44,#0f7d92);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">เข้าสู่ระบบ</button>
-    <div style="font-size:11px;color:#bbb;margin-top:16px;">Session หมดอายุอัตโนมัติใน 8 ชั่วโมง</div>
+    <div style="font-size:18px;font-weight:700;color:#0c2f44;margin-bottom:2px;">ระบบข้อมูลบุคลากร</div>
+    <div style="font-size:12px;color:#888;margin-bottom:18px;">อบต.ในคลองบางปลากด กองช่าง</div>
+
+    <!-- TABS -->
+    <div style="display:flex;border-bottom:2px solid #e0e0e0;margin-bottom:18px;">
+      <button id="tabLogin" onclick="switchTab('login')"
+        style="flex:1;padding:8px;border:none;background:none;font-size:13px;font-weight:700;color:#0f7d92;border-bottom:2px solid #0f7d92;margin-bottom:-2px;cursor:pointer;font-family:inherit;">
+        เข้าสู่ระบบ
+      </button>
+      <button id="tabRegister" onclick="switchTab('register')"
+        style="flex:1;padding:8px;border:none;background:none;font-size:13px;font-weight:600;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;font-family:inherit;">
+        สมัครสมาชิก
+      </button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="formLogin">
+      <input id="loginUser" type="text" placeholder="Username" autocomplete="username"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:6px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <div id="loginError" style="font-size:12px;color:#dc3545;min-height:16px;margin-bottom:10px;"></div>
+      <button onclick="doLogin()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0c2f44,#0f7d92);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">เข้าสู่ระบบ</button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="formRegister" style="display:none;">
+      <input id="regUser" type="text" placeholder="Username (ภาษาอังกฤษ/ตัวเลข)"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')document.getElementById('regPass').focus()">
+      <input id="regPass" type="password" placeholder="Password"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')document.getElementById('regPass2').focus()">
+      <input id="regPass2" type="password" placeholder="ยืนยัน Password"
+        style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:6px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')doRegister()">
+      <div id="regError" style="font-size:12px;color:#dc3545;min-height:16px;margin-bottom:10px;"></div>
+      <div id="regSuccess" style="font-size:12px;color:#198754;min-height:16px;margin-bottom:10px;display:none;"></div>
+      <button onclick="doRegister()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0c2f44,#0f7d92);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">สมัครสมาชิก</button>
+    </div>
+
+    <div style="font-size:11px;color:#bbb;margin-top:14px;">Session หมดอายุอัตโนมัติใน 8 ชั่วโมง</div>
   </div>
 </div>
 
@@ -1241,8 +1274,53 @@ renderAll();
 syncToSheet();
 
   // ===== LOGIN SYSTEM =====
+  const _REG_KEY = 'regusers_klongbangplakod';
+
+  function _getRegUsers(){
+    try{ return JSON.parse(localStorage.getItem(_REG_KEY)||'{}'); }catch{ return {}; }
+  }
+  function _saveRegUsers(u){ localStorage.setItem(_REG_KEY, JSON.stringify(u)); }
+
+  function switchTab(tab){
+    const isLogin = tab==='login';
+    document.getElementById('formLogin').style.display    = isLogin?'block':'none';
+    document.getElementById('formRegister').style.display = isLogin?'none':'block';
+    document.getElementById('tabLogin').style.cssText    += isLogin?';color:#0f7d92;border-bottom-color:#0f7d92;font-weight:700':';color:#aaa;border-bottom-color:transparent;font-weight:600';
+    document.getElementById('tabRegister').style.cssText += isLogin?';color:#aaa;border-bottom-color:transparent;font-weight:600':';color:#0f7d92;border-bottom-color:#0f7d92;font-weight:700';
+    document.getElementById('loginError').textContent='';
+    document.getElementById('regError').textContent='';
+    document.getElementById('regSuccess').style.display='none';
+  }
+
+  async function doRegister(){
+    const u = document.getElementById('regUser').value.trim().toLowerCase();
+    const p = document.getElementById('regPass').value;
+    const p2= document.getElementById('regPass2').value;
+    const errEl = document.getElementById('regError');
+    const okEl  = document.getElementById('regSuccess');
+    errEl.textContent=''; okEl.style.display='none';
+
+    if(!u||!p||!p2){ errEl.textContent='กรุณากรอกข้อมูลให้ครบ'; return; }
+    if(!/^[a-zA-Z0-9_]+$/.test(u)){ errEl.textContent='Username ใช้ได้แค่ภาษาอังกฤษและตัวเลข'; return; }
+    if(u==='admin'){ errEl.textContent='ไม่สามารถใช้ชื่อนี้ได้'; return; }
+    if(p.length < 6){ errEl.textContent='Password ต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
+    if(p!==p2){ errEl.textContent='Password ไม่ตรงกัน'; return; }
+
+    const users = _getRegUsers();
+    if(users[u]){ errEl.textContent='Username นี้ถูกใช้งานแล้ว'; return; }
+
+    users[u] = await _hashPwd(p);
+    _saveRegUsers(users);
+    document.getElementById('regUser').value='';
+    document.getElementById('regPass').value='';
+    document.getElementById('regPass2').value='';
+    okEl.textContent='สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ';
+    okEl.style.display='block';
+    setTimeout(()=>switchTab('login'), 1500);
+  }
+
   const _USERS = {
-    'admin': '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'
+    'admin': '9970362f36a345c764d88a6a77ef0904562385a446a425f47331edfcae4decf0'
   };
   const _SESSION_KEY = 'sess_klongbangplakod';
   const _SESSION_MS  = 8 * 60 * 60 * 1000; // 8 hours
@@ -1264,6 +1342,7 @@ syncToSheet();
     document.getElementById('loginError').textContent='';
     document.getElementById('loginUser').value='';
     document.getElementById('loginPass').value='';
+    switchTab('login');
     setTimeout(()=>document.getElementById('loginUser').focus(),100);
   }
   function _showApp(){
@@ -1277,7 +1356,8 @@ syncToSheet();
     errEl.textContent = '';
     if(!u||!p){errEl.textContent='กรุณากรอก Username และ Password';return;}
     const h = await _hashPwd(p);
-    if(_USERS[u] && _USERS[u]===h){
+    const regUsers = _getRegUsers();
+    if((_USERS[u] && _USERS[u]===h) || (regUsers[u] && regUsers[u]===h)){
       localStorage.setItem(_SESSION_KEY, JSON.stringify({user:u, exp:Date.now()+_SESSION_MS}));
       _showApp();
     } else {
