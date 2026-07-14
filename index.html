@@ -1036,7 +1036,7 @@ function printEmployee(id){
         <tr><td class="label">เพศ</td><td>${esc(e.gender)}</td></tr>
         <tr><td class="label">วันเกิด</td><td>${toThaiDate(e.birthDate)}</td></tr>
         <tr><td class="label">อายุ</td><td>${calcAge(e.birthDate)}</td></tr>
-        <tr><td class="label">เลขบัตรประชาชน</td><td><span id="idCardCell">${formatIdCard(e.idCard)}</span> <button class="toggle-btn" onclick="toggleId()" style="margin-left:8px;padding:3px 10px;font-size:12px;">🔒 ซ่อน</button></td></tr>
+        <tr><td class="label">เลขบัตรประชาชน</td><td><span id="idCardCell">${(()=>{const f=formatIdCard(e.idCard);let c=0;return f.split('').reverse().map(ch=>/[0-9]/.test(ch)&&c<3?(c++,'X'):ch).reverse().join('');})()}</span> <button class="toggle-btn" onclick="toggleId()" style="margin-left:8px;padding:3px 10px;font-size:12px;cursor:pointer;">🔓 แสดง</button></td></tr>
       </table>
     </div>
 
@@ -1045,7 +1045,8 @@ function printEmployee(id){
       <h2 class="section-title">ประวัติส่วนตัว</h2>
       <table class="info-table">
         <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
-        <tr><td class="label">คุณวุฒิการศึกษา</td><td>${fmtEdu(e)}</td></tr>
+        <tr><td class="label">วุฒิการศึกษาที่ใช้ในการสมัคร</td><td>${esc(e.educationBase)||'-'}</td></tr>
+        <tr><td class="label">สำเร็จการศึกษาระดับ</td><td>${esc(e.educationHigh)||'-'}</td></tr>
         <tr><td class="label">วันที่เข้าทำงาน</td><td>${toThaiDate(e.startDate)}</td></tr>
         <tr><td class="label">วันที่บรรจุ</td><td>${toThaiDate(e.appointDate)}</td></tr>
         <tr><td class="label">ระยะเวลาบรรจุ</td><td>${calcAge(e.appointDate)}</td></tr>
@@ -1110,13 +1111,13 @@ function printEmployee(id){
       ${(e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>`<tr><td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     <script>
-      const realId = document.getElementById('idCardCell').textContent;
-      const maskedId = realId.replace(/[0-9]/g,'x');
-      let hidden = false;
+      var _fullId = "${formatIdCard(e.idCard)}";
+      var _masked = (function(){ var f=_fullId, c=0, a=f.split('').reverse().map(function(ch){ return /[0-9]/.test(ch)&&c<3?(c++,'X'):ch; }); return a.reverse().join(''); })();
+      var _hidden = true;
       function toggleId(){
-        hidden = !hidden;
-        document.getElementById('idCardCell').textContent = hidden ? maskedId : realId;
-        document.querySelector('.toggle-btn').textContent = hidden ? '🔓 แสดง' : '🔒 ซ่อน';
+        _hidden = !_hidden;
+        document.getElementById('idCardCell').textContent = _hidden ? _masked : _fullId;
+        document.querySelector('.toggle-btn').textContent = _hidden ? '🔓 แสดง' : '🔒 ซ่อน';
       }
     <\/script>
     </div><div style="margin-top:60px;display:flex;justify-content:flex-end;gap:60px;padding-right:20px;font-family:inherit;font-size:13px;line-height:1.8;">
