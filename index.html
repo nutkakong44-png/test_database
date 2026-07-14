@@ -902,7 +902,8 @@ function renderDetail(){
   const income=sal+bon, gys=parseFloat(e.gys)||0, coop=parseFloat(e.coop)||0, ss=parseFloat(e.socialSecurity)||0;
   const deduct=gys+coop+ss;
   document.getElementById('detailPersonalInfo').innerHTML =
-    dlItem('คุณวุฒิการศึกษา', fmtEdu(e)) +
+    dlItem('วุฒิการศึกษาที่ใช้ในการสมัคร', e.educationBase||'-') +
+    dlItem('สำเร็จการศึกษาระดับ', e.educationHigh||'-') +
     dlItem('วันที่เข้าทำงาน', toThaiDate(e.startDate)) +
     dlItem('เลขบัตรประชาชน', formatIdCard(e.idCard)) +
     dlItem('วันที่บรรจุ', toThaiDate(e.appointDate)) +
