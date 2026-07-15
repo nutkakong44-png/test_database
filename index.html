@@ -1430,6 +1430,31 @@ syncToSheet();
   }
   function _saveRegUsers(u){ localStorage.setItem(_REG_KEY, JSON.stringify(u)); }
 
+  // ซิงค์บัญชีสมาชิกที่สมัครเองข้ามเครื่อง (ใช้ Google Sheet เดียวกับข้อมูลบุคลากร คนละชีตซ่อน)
+  async function _pullRegUsers(){
+    if(!SHEET_SYNC_URL) return _getRegUsers();
+    try{
+      const res = await fetch(SHEET_SYNC_URL + '?type=users', { method: 'GET' });
+      const json = await res.json();
+      if(json && json.status === 'ok' && json.data && typeof json.data === 'object' && !Array.isArray(json.data)){
+        const merged = { ...json.data, ..._getRegUsers() };
+        _saveRegUsers(merged);
+        return merged;
+      }
+    }catch(err){ /* ดึงไม่สำเร็จ ใช้ข้อมูลในเครื่องไปก่อน */ }
+    return _getRegUsers();
+  }
+  async function _pushRegUsers(users){
+    if(!SHEET_SYNC_URL) return;
+    try{
+      await fetch(SHEET_SYNC_URL + '?type=users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(users)
+      });
+    }catch(err){ /* เงียบไว้ ไม่รบกวนผู้ใช้ */ }
+  }
+
   function switchTab(tab){
     const isLogin = tab==='login';
     document.getElementById('formLogin').style.display    = isLogin?'block':'none';
@@ -1455,11 +1480,12 @@ syncToSheet();
     if(p.length < 6){ errEl.textContent='Password ต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
     if(p!==p2){ errEl.textContent='Password ไม่ตรงกัน'; return; }
 
-    const users = _getRegUsers();
-    if(users[u]){ errEl.textContent='Username นี้ถูกใช้งานแล้ว'; return; }
+    const users = await _pullRegUsers();
+    if(users[u] || u==='admin'){ errEl.textContent='Username นี้ถูกใช้งานแล้ว'; return; }
 
     users[u] = await _hashPwd(p);
     _saveRegUsers(users);
+    _pushRegUsers(users);
     document.getElementById('regUser').value='';
     document.getElementById('regPass').value='';
     document.getElementById('regPass2').value='';
@@ -1505,7 +1531,7 @@ syncToSheet();
     errEl.textContent = '';
     if(!u||!p){errEl.textContent='กรุณากรอก Username และ Password';return;}
     const h = await _hashPwd(p);
-    const regUsers = _getRegUsers();
+    const regUsers = await _pullRegUsers();
     if((_USERS[u] && _USERS[u]===h) || (regUsers[u] && regUsers[u]===h)){
       localStorage.setItem(_SESSION_KEY, JSON.stringify({user:u, exp:Date.now()+_SESSION_MS}));
       _showApp();
