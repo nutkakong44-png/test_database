@@ -1466,8 +1466,14 @@ syncToSheet();
     document.getElementById('regSuccess').style.display='none';
   }
 
+  // หา key ของ regUsers แบบไม่สนตัวพิมพ์เล็ก-ใหญ่ (สมัคร "Somchai" แล้วก็ต้อง login "Somchai"/"somchai" ได้เหมือนกัน)
+  function _findRegUserKey(users, u){
+    const target = u.toLowerCase();
+    return Object.keys(users).find(k => k.toLowerCase() === target);
+  }
+
   async function doRegister(){
-    const u = document.getElementById('regUser').value.trim().toLowerCase();
+    const u = document.getElementById('regUser').value.trim();
     const p = document.getElementById('regPass').value;
     const p2= document.getElementById('regPass2').value;
     const errEl = document.getElementById('regError');
@@ -1476,12 +1482,12 @@ syncToSheet();
 
     if(!u||!p||!p2){ errEl.textContent='กรุณากรอกข้อมูลให้ครบ'; return; }
     if(!/^[a-zA-Z0-9_]+$/.test(u)){ errEl.textContent='Username ใช้ได้แค่ภาษาอังกฤษและตัวเลข'; return; }
-    if(u==='admin'){ errEl.textContent='ไม่สามารถใช้ชื่อนี้ได้'; return; }
+    if(u.toLowerCase()==='admin'){ errEl.textContent='ไม่สามารถใช้ชื่อนี้ได้'; return; }
     if(p.length < 6){ errEl.textContent='Password ต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
     if(p!==p2){ errEl.textContent='Password ไม่ตรงกัน'; return; }
 
     const users = await _pullRegUsers();
-    if(users[u] || u==='admin'){ errEl.textContent='Username นี้ถูกใช้งานแล้ว'; return; }
+    if(_findRegUserKey(users, u)){ errEl.textContent='Username นี้ถูกใช้งานแล้ว'; return; }
 
     users[u] = await _hashPwd(p);
     _saveRegUsers(users);
@@ -1532,7 +1538,8 @@ syncToSheet();
     if(!u||!p){errEl.textContent='กรุณากรอก Username และ Password';return;}
     const h = await _hashPwd(p);
     const regUsers = await _pullRegUsers();
-    if((_USERS[u] && _USERS[u]===h) || (regUsers[u] && regUsers[u]===h)){
+    const regKey = _findRegUserKey(regUsers, u);
+    if((_USERS[u.toLowerCase()] && _USERS[u.toLowerCase()]===h) || (regKey && regUsers[regKey]===h)){
       localStorage.setItem(_SESSION_KEY, JSON.stringify({user:u, exp:Date.now()+_SESSION_MS}));
       _showApp();
       pullFromSheet();
