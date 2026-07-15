@@ -501,9 +501,12 @@ let employees = JSON.parse(localStorage.getItem('staffData_klongbangplakod') || 
 let currentDetailId = null;
 
 // ซิงค์ข้อมูลขึ้น Google Sheet อัตโนมัติเบื้องหลัง (ไม่มี UI ใดๆ ในแอพ)
-const SHEET_SYNC_URL = 'https://script.google.com/macros/s/AKfycbxvg8SrXQkjXAnbyXfN-Ee6YVuOBvw_JoRmkWMJyBO4bQmNvSrI2bVih-0VSPal0IO4SQ/exec';
+const SHEET_SYNC_URL = 'https://script.google.com/macros/s/AKfycbwPsALAfOxhdClxN4hFGzGPird-sj64nz8jRSE2Z9_3lyhDh9lLaMcVIlEki2oDt7GP/exec';
 
 let _saveInFlight = false;
+const _DELETED_KEY = '_deletedIds_klongbangplakod';
+let _deletedIds = new Set(JSON.parse(localStorage.getItem(_DELETED_KEY) || '[]'));
+
 async function syncToSheet(){
   if(!SHEET_SYNC_URL) return;
   try{
@@ -515,11 +518,27 @@ async function syncToSheet(){
   }catch(err){ /* เงียบไว้ ไม่รบกวนผู้ใช้ */ }
 }
 
+// ดึงข้อมูลล่าสุดจาก Sheet มารวมกับข้อมูลในเครื่องก่อนบันทึกทับ
+// ป้องกันข้อมูลของเครื่องอื่นที่เพิ่งเพิ่ม/แก้ไปหายเวลาเครื่องนี้บันทึกด้วยข้อมูลเก่าที่ค้างอยู่
+async function _mergeCloudBeforeSave(){
+  if(!SHEET_SYNC_URL) return;
+  try{
+    const res = await fetch(SHEET_SYNC_URL, { method: 'GET' });
+    const json = await res.json();
+    if(json && json.status === 'ok' && Array.isArray(json.data)){
+      const localIds = new Set(employees.map(e=>e.id));
+      const cloudOnly = json.data.filter(e => !_deletedIds.has(e.id) && !localIds.has(e.id));
+      employees = cloudOnly.concat(employees);
+    }
+  }catch(err){ /* ดึงไม่สำเร็จ ก็บันทึกด้วยข้อมูลในเครื่องไปก่อน */ }
+}
+
 async function save(){
   _saveInFlight = true;
-  localStorage.setItem('staffData_klongbangplakod', JSON.stringify(employees));
-  renderAll();
   try{
+    await _mergeCloudBeforeSave();
+    localStorage.setItem('staffData_klongbangplakod', JSON.stringify(employees));
+    renderAll();
     await syncToSheet();
   } finally {
     _saveInFlight = false;
@@ -969,6 +988,8 @@ function saveEmployee(){
 function deleteEmployee(id){
   if(!confirm('ยืนยันการลบข้อมูลบุคลากรนี้?')) return;
   employees = employees.filter(e=>e.id!==id);
+  _deletedIds.add(id);
+  localStorage.setItem(_DELETED_KEY, JSON.stringify([..._deletedIds]));
   save();
 }
 
