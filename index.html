@@ -258,7 +258,7 @@
       <span style="font-size:13px;color:var(--muted);">คลิกที่เฟรมเพื่อใส่รูปถ่าย (สัดส่วน 1 นิ้ว)</span>
     </div>
 
-    <h3>ข้อมูลพื้นฐาน</h3>
+    <h3>ข้อมูลพื้นฐาน/ประวัติส่วนตัว</h3>
     <div class="form-grid">
       <div><label>ชื่อ *</label><input id="f_firstName"></div>
       <div><label>นามสกุล *</label><input id="f_lastName"></div>
@@ -313,8 +313,6 @@
       <div><label>วันเกิด</label><input type="date" id="f_birthDate"></div>
       <div><label>อายุ (ปี)</label><input id="f_ageDisplay" readonly placeholder="คำนวณอัตโนมัติ" style="background:#f3f5f7;color:var(--muted);"></div>
     </div>
-
-    <h3>ประวัติส่วนตัว</h3>
     <div class="form-grid">
       <div class="full">
         <label>คุณวุฒิการศึกษา</label>
@@ -353,6 +351,29 @@
       <div><label>วันที่ปรับภารกิจ</label><input type="date" id="f_transferDate"></div>
       <div><label>วันที่ลาออก</label><input type="date" id="f_resignDate"></div>
     </div>
+
+    <h3>ข้อมูลที่อยู่</h3>
+    <div class="form-grid">
+      <div><label>บ้านเลขที่</label><input id="f_addrHouseNo" placeholder="เช่น 99/1"></div>
+      <div><label>หมู่ที่</label><input id="f_addrMoo" placeholder="เช่น 5"></div>
+      <div><label>ตรอก/ซอย</label><input id="f_addrSoi"></div>
+      <div><label>ถนน</label><input id="f_addrRoad"></div>
+      <div>
+        <label>จังหวัด</label>
+        <select id="f_addrProvince" onchange="onAddrProvinceChange()"><option value="">-- เลือก --</option></select>
+      </div>
+      <div>
+        <label>อำเภอ/เขต</label>
+        <select id="f_addrDistrict" onchange="onAddrDistrictChange()"><option value="">-- เลือก --</option></select>
+      </div>
+      <div>
+        <label>ตำบล/แขวง</label>
+        <select id="f_addrSubdistrict" onchange="onAddrSubdistrictChange()"><option value="">-- เลือก --</option></select>
+      </div>
+      <div><label>รหัสไปรษณีย์</label><input id="f_addrZipcode" placeholder="กรอกอัตโนมัติเมื่อเลือกตำบล"></div>
+      <div><label>E-mail</label><input type="email" id="f_email" placeholder="example@email.com"></div>
+    </div>
+
     <h3>ข้อมูลเงินเดือน</h3>
     <div class="form-grid">
       <div><label>เงินเดือน</label><input type="number" id="f_salary" oninput="updateSalaryCalc()" placeholder="0"></div>
@@ -446,10 +467,8 @@
       </div>
     </div>
 
-    <h3>ข้อมูลพื้นฐาน</h3>
+    <h3>ข้อมูลพื้นฐาน/ประวัติส่วนตัว</h3>
     <div class="detail-card"><div class="detail-grid" id="detailBasicInfo"></div></div>
-
-    <h3>ประวัติส่วนตัว</h3>
     <div class="detail-card"><div class="detail-grid" id="detailPersonalInfo"></div></div>
 
     <h3>ข้อมูลฝึกอบรม</h3>
@@ -602,6 +621,19 @@ function renderAll(){ renderTable(); renderStats(); }
 
 function esc(s){ return (s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function hospLabel(i){ return i===0 ? 'โรงพยาบาลตามสิทธิ' : 'สิทธิอื่นๆ'; }
+function formatAddress(a){
+  if(!a) return '';
+  const parts = [];
+  if(a.houseNo) parts.push(a.houseNo);
+  if(a.moo) parts.push('หมู่ '+a.moo);
+  if(a.soi) parts.push('ซอย'+a.soi);
+  if(a.road) parts.push('ถนน'+a.road);
+  if(a.subdistrict) parts.push((a.province==='กรุงเทพมหานคร'?'แขวง':'ตำบล')+a.subdistrict);
+  if(a.district) parts.push((a.province==='กรุงเทพมหานคร'?'เขต':'อำเภอ')+a.district);
+  if(a.province) parts.push(a.province);
+  if(a.zipcode) parts.push(a.zipcode);
+  return parts.join(' ');
+}
 
 function formatIdCard(id){
   if(!id) return '';
@@ -859,13 +891,14 @@ function removeFormHospital(i){
 function openAddModal(){
   currentDetailId = null;
   document.getElementById('empModalTitle').textContent = 'เพิ่มบุคลากร';
-  ['firstName','lastName','position','phone','idCard','educationBase','educationHigh','startDate','salary','salaryBonus','salaryRemaining','gys','coop','socialSecurity','salaryTotal','salaryNet','hospital','emergencyName','emergencyContact','note','birthDate','ageDisplay','appointDate','appointDuration','transferDate','resignDate'].forEach(f=>{ const el=document.getElementById('f_'+f); if(el) el.value=''; });
+  ['firstName','lastName','position','phone','idCard','educationBase','educationHigh','startDate','salary','salaryBonus','salaryRemaining','gys','coop','socialSecurity','salaryTotal','salaryNet','hospital','emergencyName','emergencyContact','note','birthDate','ageDisplay','appointDate','appointDuration','transferDate','resignDate','email'].forEach(f=>{ const el=document.getElementById('f_'+f); if(el) el.value=''; });
   document.getElementById('f_positionOther').value = '';
   document.getElementById('f_positionOther').style.display = 'none';
   document.getElementById('f_type').selectedIndex = 0;
   document.getElementById('f_typeOther').value = '';
   document.getElementById('f_typeOther').style.display = 'none';
   document.getElementById('f_gender').value = '';
+  setAddressFormValue(null);
   document.getElementById('empModalBackdrop').dataset.editId = '';
   formTrainings = []; formTrainingEditIdx = null;
   renderFormTrainingTable();
@@ -909,6 +942,8 @@ function openEditModal(id){
     document.getElementById('f_typeOther').style.display = 'block';
   }
   document.getElementById('f_phone').value = e.phone||'';
+  document.getElementById('f_email').value = e.email||'';
+  setAddressFormValue(e.address);
   document.getElementById('f_idCard').value = e.idCard||'';
   document.getElementById('f_educationBase').value = e.educationBase||'';
   document.getElementById('f_educationHigh').value = e.educationHigh||'';
@@ -959,6 +994,17 @@ function saveEmployee(){
       ? (document.getElementById('f_typeOther').value.trim() || 'อื่นๆ')
       : document.getElementById('f_type').value,
     phone: document.getElementById('f_phone').value.trim(),
+    email: document.getElementById('f_email').value.trim(),
+    address: {
+      houseNo: document.getElementById('f_addrHouseNo').value.trim(),
+      moo: document.getElementById('f_addrMoo').value.trim(),
+      soi: document.getElementById('f_addrSoi').value.trim(),
+      road: document.getElementById('f_addrRoad').value.trim(),
+      subdistrict: document.getElementById('f_addrSubdistrict').value,
+      district: document.getElementById('f_addrDistrict').value,
+      province: document.getElementById('f_addrProvince').value,
+      zipcode: document.getElementById('f_addrZipcode').value.trim(),
+    },
     idCard: document.getElementById('f_idCard').value.trim(),
     educationBase: document.getElementById('f_educationBase').value,
     educationHigh: document.getElementById('f_educationHigh').value,
@@ -1038,9 +1084,11 @@ function renderDetail(){
     dlItem('ตำแหน่ง', e.position) +
     dlItem('ประเภท', e.type) +
     dlItem('เบอร์โทร', formatPhone(e.phone)) +
+    dlItem('E-mail', e.email) +
     dlItem('เพศ', e.gender) +
     dlItem('วันเกิด', toThaiDate(e.birthDate)) +
-    dlItem('อายุ', calcAge(e.birthDate));
+    dlItem('อายุ', calcAge(e.birthDate)) +
+    dlItem('ที่อยู่', formatAddress(e.address)||'-');
 
   const sal=parseFloat(e.salary)||0, bon=parseFloat(e.salaryBonus)||0;
   const otherDeduct=(e.salaryOthers||[]).reduce((s,o)=>s+(parseFloat(o.amount)||0),0);
@@ -1173,27 +1221,21 @@ function printEmployee(id){
       </div>
     </div>
 
-    <!-- ===== ข้อมูลพื้นฐาน ===== -->
+    <!-- ===== ข้อมูลพื้นฐาน/ประวัติส่วนตัว ===== -->
     <div class="section-box">
-      <h2 class="section-title">ข้อมูลพื้นฐาน</h2>
+      <h2 class="section-title">ข้อมูลพื้นฐาน/ประวัติส่วนตัว</h2>
       <table class="info-table">
         <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
         <tr><td class="label">ชื่อ-นามสกุล</td><td>${esc(e.firstName)} ${esc(e.lastName)}</td></tr>
         <tr><td class="label">ตำแหน่ง</td><td>${esc(e.position)}</td></tr>
         <tr><td class="label">ประเภท</td><td>${esc(e.type)}</td></tr>
         <tr><td class="label">เบอร์โทร</td><td>${formatPhone(e.phone)}</td></tr>
+        <tr><td class="label">E-mail</td><td>${esc(e.email)||'-'}</td></tr>
         <tr><td class="label">เพศ</td><td>${esc(e.gender)}</td></tr>
         <tr><td class="label">วันเกิด</td><td>${toThaiDate(e.birthDate)}</td></tr>
         <tr><td class="label">อายุ</td><td>${calcAge(e.birthDate)}</td></tr>
+        <tr><td class="label">ที่อยู่</td><td>${esc(formatAddress(e.address))||'-'}</td></tr>
         <tr><td class="label">เลขบัตรประชาชน</td><td><span id="idCardCell">${(()=>{const f=formatIdCard(e.idCard);let c=0;return f.split('').reverse().map(ch=>/[0-9]/.test(ch)&&c<3?(c++,'X'):ch).reverse().join('');})()}</span> <button class="toggle-btn" onclick="toggleId()" style="margin-left:8px;padding:3px 10px;font-size:12px;cursor:pointer;">🔓 แสดง</button></td></tr>
-      </table>
-    </div>
-
-    <!-- ===== ประวัติส่วนตัว ===== -->
-    <div class="section-box">
-      <h2 class="section-title">ประวัติส่วนตัว</h2>
-      <table class="info-table">
-        <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
         <tr><td class="label">วุฒิการศึกษาที่ใช้ในการสมัคร</td><td>${esc(e.educationBase)||'-'}</td></tr>
         <tr><td class="label">วุฒิการศึกษาสูงสุด</td><td>${esc(e.educationHigh)||'-'}</td></tr>
         <tr><td class="label">วันที่เข้าทำงาน</td><td>${toThaiDate(e.startDate)}</td></tr>
@@ -1428,6 +1470,65 @@ function confirmCrop() {
   updateFormPhoto();
   closeModal('cropModalBackdrop');
 }
+
+// ===== ข้อมูลที่อยู่ (จังหวัด/อำเภอ/ตำบล แบบ dropdown ต่อเนื่อง) =====
+let THAI_ADDRESS = null;
+async function loadThaiAddress(){
+  if(THAI_ADDRESS) return THAI_ADDRESS;
+  try{
+    const res = await fetch('thai-address.json', { cache: 'no-store' });
+    THAI_ADDRESS = await res.json();
+  }catch(err){ THAI_ADDRESS = []; }
+  return THAI_ADDRESS;
+}
+
+function populateProvinceSelect(){
+  const sel = document.getElementById('f_addrProvince');
+  if(!sel || !THAI_ADDRESS) return;
+  sel.innerHTML = '<option value="">-- เลือก --</option>' + THAI_ADDRESS.map(p=>`<option>${esc(p.name)}</option>`).join('');
+}
+
+function onAddrProvinceChange(){
+  const distSel = document.getElementById('f_addrDistrict');
+  const subSel = document.getElementById('f_addrSubdistrict');
+  distSel.innerHTML = '<option value="">-- เลือก --</option>';
+  subSel.innerHTML = '<option value="">-- เลือก --</option>';
+  const prov = (THAI_ADDRESS||[]).find(p=>p.name===document.getElementById('f_addrProvince').value);
+  if(prov) distSel.innerHTML += prov.districts.map(d=>`<option>${esc(d.name)}</option>`).join('');
+}
+
+function onAddrDistrictChange(){
+  const subSel = document.getElementById('f_addrSubdistrict');
+  subSel.innerHTML = '<option value="">-- เลือก --</option>';
+  document.getElementById('f_addrZipcode').value = '';
+  const prov = (THAI_ADDRESS||[]).find(p=>p.name===document.getElementById('f_addrProvince').value);
+  const dist = prov && prov.districts.find(d=>d.name===document.getElementById('f_addrDistrict').value);
+  if(dist) subSel.innerHTML += dist.subdistricts.map(s=>`<option>${esc(s.name)}</option>`).join('');
+}
+
+function onAddrSubdistrictChange(){
+  const prov = (THAI_ADDRESS||[]).find(p=>p.name===document.getElementById('f_addrProvince').value);
+  const dist = prov && prov.districts.find(d=>d.name===document.getElementById('f_addrDistrict').value);
+  const sub = dist && dist.subdistricts.find(s=>s.name===document.getElementById('f_addrSubdistrict').value);
+  document.getElementById('f_addrZipcode').value = (sub && sub.zip) ? sub.zip : '';
+}
+
+function setAddressFormValue(address){
+  address = address || {};
+  document.getElementById('f_addrHouseNo').value = address.houseNo || '';
+  document.getElementById('f_addrMoo').value = address.moo || '';
+  document.getElementById('f_addrSoi').value = address.soi || '';
+  document.getElementById('f_addrRoad').value = address.road || '';
+  document.getElementById('f_addrProvince').value = address.province || '';
+  onAddrProvinceChange();
+  document.getElementById('f_addrDistrict').value = address.district || '';
+  onAddrDistrictChange();
+  document.getElementById('f_addrSubdistrict').value = address.subdistrict || '';
+  onAddrSubdistrictChange();
+  if(address.zipcode) document.getElementById('f_addrZipcode').value = address.zipcode;
+}
+
+loadThaiAddress().then(populateProvinceSelect);
 
 renderAll();
 syncToSheet();
