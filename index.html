@@ -526,6 +526,30 @@ let _saveInFlight = false;
 const _DELETED_KEY = '_deletedIds_klongbangplakod';
 let _deletedIds = new Set(JSON.parse(localStorage.getItem(_DELETED_KEY) || '[]'));
 
+// ซิงค์รายการที่ถูกลบ (tombstone) ข้ามเครื่อง กันเครื่องที่ข้อมูลเก่าค้างดันของที่ถูกลบไปแล้วกลับขึ้นมา
+async function _pullDeletedIds(){
+  if(!SHEET_SYNC_URL) return _deletedIds;
+  try{
+    const res = await fetch(SHEET_SYNC_URL + '?type=deleted', { method: 'GET' });
+    const json = await res.json();
+    if(json && json.status === 'ok' && Array.isArray(json.data)){
+      json.data.forEach(id => _deletedIds.add(id));
+      localStorage.setItem(_DELETED_KEY, JSON.stringify([..._deletedIds]));
+    }
+  }catch(err){ /* ดึงไม่สำเร็จ ใช้รายการในเครื่องไปก่อน */ }
+  return _deletedIds;
+}
+async function _pushDeletedIds(){
+  if(!SHEET_SYNC_URL) return;
+  try{
+    await fetch(SHEET_SYNC_URL + '?type=deleted', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify([..._deletedIds])
+    });
+  }catch(err){ /* เงียบไว้ ไม่รบกวนผู้ใช้ */ }
+}
+
 async function syncToSheet(){
   if(!SHEET_SYNC_URL) return;
   try{
@@ -548,6 +572,10 @@ async function syncToSheet(){
 // ป้องกันข้อมูลของเครื่องอื่นที่เพิ่งเพิ่ม/แก้ไปหายเวลาเครื่องนี้บันทึกด้วยข้อมูลเก่าที่ค้างอยู่
 async function _mergeCloudBeforeSave(){
   if(!SHEET_SYNC_URL) return;
+  await _pullDeletedIds();
+  // เอารายการที่ถูกลบไปแล้ว (ไม่ว่าจะลบจากเครื่องไหน) ออกจากข้อมูลในเครื่องนี้ด้วย
+  // กันกรณีเครื่องนี้มีข้อมูลเก่าค้างอยู่ (ยังไม่รู้ว่ามีคนลบไปแล้ว) แล้วดันกลับขึ้น Sheet อีกรอบ
+  employees = employees.filter(e => !_deletedIds.has(e.id));
   try{
     const res = await fetch(SHEET_SYNC_URL, { method: 'GET' });
     const json = await res.json();
@@ -1046,6 +1074,7 @@ function deleteEmployee(id){
   employees = employees.filter(e=>e.id!==id);
   _deletedIds.add(id);
   localStorage.setItem(_DELETED_KEY, JSON.stringify([..._deletedIds]));
+  _pushDeletedIds();
   save();
 }
 
