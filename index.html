@@ -510,12 +510,19 @@ let _deletedIds = new Set(JSON.parse(localStorage.getItem(_DELETED_KEY) || '[]')
 async function syncToSheet(){
   if(!SHEET_SYNC_URL) return;
   try{
-    await fetch(SHEET_SYNC_URL, {
+    const res = await fetch(SHEET_SYNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(employees)
     });
-  }catch(err){ /* เงียบไว้ ไม่รบกวนผู้ใช้ */ }
+    const json = await res.json();
+    if(json && json.status !== 'ok'){
+      console.error('syncToSheet: บันทึกขึ้น Sheet ไม่สำเร็จ', json.message);
+    }
+    if(json && json.warnings && json.warnings.length){
+      console.warn('syncToSheet warnings:', json.warnings);
+    }
+  }catch(err){ console.error('syncToSheet: เชื่อมต่อ Sheet ไม่สำเร็จ', err); }
 }
 
 // ดึงข้อมูลล่าสุดจาก Sheet มารวมกับข้อมูลในเครื่องก่อนบันทึกทับ
@@ -552,6 +559,9 @@ async function pullFromSheet(){
   try{
     const res = await fetch(SHEET_SYNC_URL, { method: 'GET' });
     const json = await res.json();
+    // เช็คซ้ำหลัง await: กันกรณี save() เริ่มขึ้นระหว่างที่ request นี้กำลังทำงานอยู่
+    // ไม่งั้นผลลัพธ์เก่าที่เพิ่งได้มาจะไปทับข้อมูลที่เพิ่งบันทึกเสร็จใหม่ๆ
+    if(_saveInFlight) return;
     if(json && json.status === 'ok' && Array.isArray(json.data)){
       if(json.data.length > 0){
         employees = json.data;
