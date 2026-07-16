@@ -587,6 +587,7 @@ async function _mergeCloudBeforeSave(){
   }catch(err){ /* ดึงไม่สำเร็จ ก็บันทึกด้วยข้อมูลในเครื่องไปก่อน */ }
 }
 
+let _lastSaveCompletedAt = 0;
 async function save(){
   _saveInFlight = true;
   try{
@@ -596,6 +597,7 @@ async function save(){
     await syncToSheet();
   } finally {
     _saveInFlight = false;
+    _lastSaveCompletedAt = Date.now();
   }
 }
 
@@ -603,12 +605,13 @@ let _pulling = false;
 async function pullFromSheet(){
   if(!SHEET_SYNC_URL || _pulling || _saveInFlight) return;
   _pulling = true;
+  const pullStartedAt = Date.now();
   try{
     const res = await fetch(SHEET_SYNC_URL, { method: 'GET' });
     const json = await res.json();
-    // เช็คซ้ำหลัง await: กันกรณี save() เริ่มขึ้นระหว่างที่ request นี้กำลังทำงานอยู่
-    // ไม่งั้นผลลัพธ์เก่าที่เพิ่งได้มาจะไปทับข้อมูลที่เพิ่งบันทึกเสร็จใหม่ๆ
-    if(_saveInFlight) return;
+    // เช็คซ้ำหลัง await: กันกรณี save() เริ่มขึ้น (หรือเสร็จไปแล้ว) ระหว่างที่ request นี้กำลังทำงานอยู่
+    // ไม่งั้นผลลัพธ์เก่าที่เพิ่งได้มา (ดึงมาจากก่อนบันทึก) จะไปทับข้อมูลที่เพิ่งบันทึกเสร็จใหม่ๆ
+    if(_saveInFlight || pullStartedAt < _lastSaveCompletedAt) return;
     if(json && json.status === 'ok' && Array.isArray(json.data)){
       if(json.data.length > 0){
         employees = json.data;
