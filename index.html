@@ -429,7 +429,7 @@
       <div class="full"><textarea id="f_note" rows="2"></textarea></div>
     </div>
 
-    <h3>บันทึกการขาด / ลา / มาสาย</h3>
+    <h3>บันทึกการลา/มาสาย</h3>
     <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
       <button type="button" id="f_att_sort_btn" class="btn outline-teal btn-sm" onclick="toggleAttSort()" style="font-size:12px;">📅 ใหม่→เก่า</button>
     </div>
@@ -437,7 +437,7 @@
     <div class="inline-add">
       <input id="f_att_date" type="date">
       <select id="f_att_type">
-        <option>มาสาย</option><option>ขาด</option><option>ลาป่วย</option>
+        <option>มาสาย</option><option>ลาป่วย</option>
         <option>ลากิจ</option><option>ลาพักผ่อน</option><option>ลาบวช</option>
         <option>ลาคลอด</option><option>อื่นๆ</option>
       </select>
@@ -483,7 +483,7 @@
     <h3>อื่นๆ</h3>
     <div class="detail-card"><div class="detail-grid" id="detailNoteInfo"></div></div>
 
-    <h3>บันทึกการขาด / ลา / มาสาย</h3>
+    <h3>บันทึกการลา/มาสาย</h3>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
       <span style="font-size:13px;font-weight:700;color:var(--navy);">สรุปปีงบประมาณ:</span>
       <select id="fySelect" onchange="renderFySummary()" style="padding:5px 12px;border:1.5px solid var(--teal);border-radius:7px;font-size:13px;font-family:inherit;"></select>
@@ -1317,24 +1317,22 @@ function printEmployee(id){
       <tr><td class="label">ชื่อหลักสูตร</td><td class="label">วันที่</td><td class="label">ระยะเวลา</td><td class="label">สถานที่</td></tr>
       ${(e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`<tr><td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
-    </div><div class="section-page"><h1>บันทึกการขาด / ลา / มาสาย</h1>
+    </div><div class="section-page"><h1>บันทึกการลา/มาสาย</h1>
     ${(()=>{ const fy=currentFiscalYear(); const c=getAttendanceSummary(e,fy); return `
     <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
       <div style="font-size:13px;font-weight:700;width:100%;color:#0c2f44;">สรุปปีงบประมาณ ${fy}</div>
       <div style="border:1px solid #dc3545;border-radius:6px;padding:8px 14px;text-align:center;background:#fdf0f1;">
         <div style="font-size:15px;font-weight:700;color:#721c24;">${c['มาสาย']}</div><div style="font-size:12px;color:#721c24;">มาสาย</div></div>
-      <div style="border:1px solid #ffc107;border-radius:6px;padding:8px 14px;text-align:center;background:#fff9e6;">
-        <div style="font-size:15px;font-weight:700;color:#856404;">${c['ขาด']}</div><div style="font-size:12px;color:#856404;">ขาด</div></div>
       <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
         <div style="font-size:15px;font-weight:700;color:#0c5460;">${c['ลาป่วย']}</div><div style="font-size:12px;color:#0c5460;">ลาป่วย</div></div>
-      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
-        <div style="font-size:15px;font-weight:700;color:#0c5460;">${c['ลากิจ']}</div><div style="font-size:12px;color:#0c5460;">ลากิจ</div></div>
-      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
-        <div style="font-size:15px;font-weight:700;color:#0c5460;">${c['ลาพักผ่อน']}</div><div style="font-size:12px;color:#0c5460;">ลาพักผ่อน</div></div>
-      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
-        <div style="font-size:15px;font-weight:700;color:#0c5460;">${c['ลาคลอด']}</div><div style="font-size:12px;color:#0c5460;">ลาคลอด</div></div>
-      <div style="border:1px solid #17a2b8;border-radius:6px;padding:8px 14px;text-align:center;background:#e8f7fa;">
-        <div style="font-size:15px;font-weight:700;color:#0c5460;">${c['ลาบวช']}</div><div style="font-size:12px;color:#0c5460;">ลาบวช</div></div>
+      <div style="border:1px solid #6f42c1;border-radius:6px;padding:8px 14px;text-align:center;background:#f1eafa;">
+        <div style="font-size:15px;font-weight:700;color:#432874;">${c['ลากิจ']}</div><div style="font-size:12px;color:#432874;">ลากิจ</div></div>
+      <div style="border:1px solid #28a745;border-radius:6px;padding:8px 14px;text-align:center;background:#eaf7ec;">
+        <div style="font-size:15px;font-weight:700;color:#155724;">${c['ลาพักผ่อน']}</div><div style="font-size:12px;color:#155724;">ลาพักผ่อน</div></div>
+      <div style="border:1px solid #e83e8c;border-radius:6px;padding:8px 14px;text-align:center;background:#fdeef4;">
+        <div style="font-size:15px;font-weight:700;color:#99195c;">${c['ลาคลอด']}</div><div style="font-size:12px;color:#99195c;">ลาคลอด</div></div>
+      <div style="border:1px solid #fd7e14;border-radius:6px;padding:8px 14px;text-align:center;background:#fff2e5;">
+        <div style="font-size:15px;font-weight:700;color:#a34e02;">${c['ลาบวช']}</div><div style="font-size:12px;color:#a34e02;">ลาบวช</div></div>
       <div style="border:1px solid #aaa;border-radius:6px;padding:8px 14px;text-align:center;background:#f5f5f5;">
         <div style="font-size:15px;font-weight:700;color:#555;">${c['อื่นๆ']}</div><div style="font-size:12px;color:#555;">อื่นๆ</div></div>
     </div>`; })()}
@@ -1407,12 +1405,11 @@ function renderFySummary(){
   const c = getAttendanceSummary(e, fy);
   document.getElementById('fySummary').innerHTML = [
     {label:'มาสาย', val:c['มาสาย'], bg:'#f8d7da', bd:'#dc3545', col:'#721c24'},
-    {label:'ขาด',   val:c['ขาด'],   bg:'#fff3cd', bd:'#ffc107', col:'#856404'},
     {label:'ลาป่วย',val:c['ลาป่วย'],bg:'#d1ecf1', bd:'#17a2b8', col:'#0c5460'},
-    {label:'ลากิจ', val:c['ลากิจ'], bg:'#d1ecf1', bd:'#17a2b8', col:'#0c5460'},
-    {label:'ลาพักผ่อน',val:c['ลาพักผ่อน'],bg:'#d1ecf1',bd:'#17a2b8',col:'#0c5460'},
-    {label:'ลาคลอด',val:c['ลาคลอด'],bg:'#d1ecf1',bd:'#17a2b8',col:'#0c5460'},
-    {label:'ลาบวช', val:c['ลาบวช'], bg:'#d1ecf1', bd:'#17a2b8', col:'#0c5460'},
+    {label:'ลากิจ', val:c['ลากิจ'], bg:'#e6d9f5', bd:'#6f42c1', col:'#432874'},
+    {label:'ลาพักผ่อน',val:c['ลาพักผ่อน'],bg:'#d4edda',bd:'#28a745',col:'#155724'},
+    {label:'ลาคลอด',val:c['ลาคลอด'],bg:'#fce4ec',bd:'#e83e8c',col:'#99195c'},
+    {label:'ลาบวช', val:c['ลาบวช'], bg:'#ffe8d1', bd:'#fd7e14', col:'#a34e02'},
     {label:'อื่นๆ', val:c['อื่นๆ'], bg:'#f5f5f5', bd:'#aaa',    col:'#555'},
   ].map(x=>`
     <div style="background:${x.bg};border:1px solid ${x.bd};border-radius:8px;padding:8px 14px;text-align:center;min-width:70px;">
