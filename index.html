@@ -108,7 +108,12 @@
     align-items:center;justify-content:center;font-size:20px;
   }
   .avatar-frame:hover .cam-icon{display:flex;}
-  .avatar-frame-lg{width:150px; height:210px; border-radius:10px; font-size:48px; cursor:default;}
+  .photo-lightbox-backdrop{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999;
+    align-items:center; justify-content:center; cursor:zoom-out;
+  }
+  .photo-lightbox-backdrop.show{display:flex;}
+  .photo-lightbox-backdrop img{width:min(600px, 90vw); height:auto; max-height:90vh; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,.5);}
   /* crop modal */
   #cropContainer{
     position:relative;overflow:hidden;width:200px;height:280px;
@@ -459,7 +464,7 @@
     <button class="close-x" onclick="closeModal('detailModalBackdrop')">×</button>
 
     <div class="detail-profile-header">
-      <div class="avatar-frame avatar-frame-lg" id="detailAvatar">
+      <div class="avatar-frame" id="detailAvatar" style="cursor:default;" onclick="openPhotoLightbox()">
         <span id="detailAvatarInitial">-</span>
       </div>
       <div>
@@ -515,6 +520,11 @@
 
 <!-- Print area (hidden, used only when printing) -->
 <div id="printArea" style="display:none;"></div>
+
+<!-- Photo lightbox: คลิกรูปในหน้าดูข้อมูลเพื่อดูรูปขนาดใหญ่ -->
+<div class="photo-lightbox-backdrop" id="photoLightboxBackdrop" onclick="closePhotoLightbox()">
+  <img id="photoLightboxImg" src="" alt="">
+</div>
 
 <script>
 let employees = JSON.parse(localStorage.getItem('staffData_klongbangplakod') || '[]');
@@ -1089,6 +1099,16 @@ function openDetail(id){
   document.getElementById('detailModalBackdrop').classList.add('show');
 }
 
+function openPhotoLightbox(){
+  const e = employees.find(x=>x.id===currentDetailId);
+  if(!e || !e.photo) return;
+  document.getElementById('photoLightboxImg').src = e.photo;
+  document.getElementById('photoLightboxBackdrop').classList.add('show');
+}
+function closePhotoLightbox(){
+  document.getElementById('photoLightboxBackdrop').classList.remove('show');
+}
+
 function dlItem(label, value, full){
   const v = (value===undefined || value===null || value==='') ? '<span class="dl-value empty">ไม่มีข้อมูล</span>' : `<span class="dl-value">${esc(value)}</span>`;
   return `<div class="detail-item${full?' full':''}"><div class="dl-label">${esc(label)}</div>${v}</div>`;
@@ -1107,9 +1127,13 @@ function renderDetail(){
     img.src = e.photo; img.className = 'photo-img';
     document.getElementById('detailAvatar').prepend(img);
     initEl.style.display = 'none';
+    document.getElementById('detailAvatar').style.cursor = 'zoom-in';
+    document.getElementById('detailAvatar').title = 'คลิกเพื่อดูรูปขนาดใหญ่';
   } else {
     initEl.style.display = '';
     initEl.textContent = (e.firstName||'?').charAt(0);
+    document.getElementById('detailAvatar').style.cursor = 'default';
+    document.getElementById('detailAvatar').title = '';
   }
 
   document.getElementById('detailBasicInfo').innerHTML =
