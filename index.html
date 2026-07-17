@@ -412,7 +412,8 @@
     <table class="subtable" id="formTrainingTable"><thead><tr><th>ชื่อหลักสูตร</th><th>วันที่</th><th>ระยะเวลา</th><th>สถานที่</th><th></th></tr></thead><tbody></tbody></table>
     <div class="inline-add">
       <input id="f_tr_name" placeholder="ชื่อหลักสูตร">
-      <input id="f_tr_date" type="date">
+      <input id="f_tr_date" type="date" title="วันที่เริ่ม">
+      <input id="f_tr_date2" type="date" title="ถึงวันที่">
       <input id="f_tr_duration" placeholder="ระยะเวลา (เช่น 3 วัน)">
       <input id="f_tr_location" placeholder="สถานที่">
       <button type="button" id="f_tr_add_btn" class="btn outline-teal btn-sm" onclick="addFormTraining()">+ เพิ่ม</button>
@@ -441,7 +442,8 @@
     </div>
     <table class="subtable" id="formAttendanceTable"><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมายเหตุ</th><th></th></tr></thead><tbody></tbody></table>
     <div class="inline-add">
-      <input id="f_att_date" type="date">
+      <input id="f_att_date" type="date" title="วันที่เริ่ม">
+      <input id="f_att_date2" type="date" title="ถึงวันที่">
       <select id="f_att_type">
         <option>มาสาย</option><option>ลาป่วย</option>
         <option>ลากิจ</option><option>ลาพักผ่อน</option><option>ลาบวช</option>
@@ -697,6 +699,11 @@ function toThaiDate(s){
   const d=new Date(s); if(isNaN(d)) return s;
   return d.getDate()+' '+THAI_MONTHS[d.getMonth()]+' '+(d.getFullYear()+543);
 }
+function formatDateRange(start, end){
+  if(!start) return '';
+  if(end && end!==start) return 'วันที่ '+toThaiDate(start)+' ถึง วันที่ '+toThaiDate(end);
+  return 'วันที่ '+toThaiDate(start);
+}
 function fmtMoney(v){ return (v!==''&&v!==null&&v!==undefined&&v!=='-'&&!isNaN(Number(v))&&Number(v)!==0) ? Number(v).toLocaleString() : (v==='-'?'-':''); }
 function updateSalaryCalc(){
   const sal=parseFloat(document.getElementById('f_salary').value)||0;
@@ -788,7 +795,7 @@ function renderFormTrainingTable(){
   const tbody = document.querySelector('#formTrainingTable tbody');
   tbody.innerHTML = sorted.map(t=>`
     <tr style="${formTrainingEditIdx===t._i?'background:#fffbe6;':''}">
-      <td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td>
+      <td>${esc(t.name)}</td><td>${formatDateRange(t.date, t.dateEnd)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td>
       <td style="white-space:nowrap;">
         <button type="button" class="btn outline-teal btn-sm" onclick="editFormTraining(${t._i})">แก้ไข</button>
         <button type="button" class="btn red btn-sm" onclick="removeFormTraining(${t._i})">ลบ</button>
@@ -802,6 +809,7 @@ function editFormTraining(i){
   const t = formTrainings[i];
   document.getElementById('f_tr_name').value = t.name;
   document.getElementById('f_tr_date').value = t.date;
+  document.getElementById('f_tr_date2').value = t.dateEnd || '';
   document.getElementById('f_tr_duration').value = t.duration;
   document.getElementById('f_tr_location').value = t.location;
   formTrainingEditIdx = i;
@@ -813,7 +821,7 @@ function renderFormAttendanceTable(){
   const tbody = document.querySelector('#formAttendanceTable tbody');
   tbody.innerHTML = sorted.map(a=>`
     <tr style="${formAttendanceEditIdx===a._i?'background:#fffbe6;':''}">
-      <td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td>
+      <td>${formatDateRange(a.date, a.dateEnd)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td>
       <td style="white-space:nowrap;">
         <button type="button" class="btn outline-teal btn-sm" onclick="editFormAttendance(${a._i})">แก้ไข</button>
         <button type="button" class="btn red btn-sm" onclick="removeFormAttendance(${a._i})">ลบ</button>
@@ -826,6 +834,7 @@ function renderFormAttendanceTable(){
 function editFormAttendance(i){
   const a = formAttendance[i];
   document.getElementById('f_att_date').value = a.date;
+  document.getElementById('f_att_date2').value = a.dateEnd || '';
   document.getElementById('f_att_type').value = a.type;
   document.getElementById('f_att_note').value = a.note;
   formAttendanceEditIdx = i;
@@ -835,7 +844,8 @@ function editFormAttendance(i){
 function addFormAttendance(){
   const date = document.getElementById('f_att_date').value;
   if(!date){ alert('กรุณาเลือกวันที่'); return; }
-  const entry = {date, type: document.getElementById('f_att_type').value, note: document.getElementById('f_att_note').value.trim()};
+  const dateEnd = document.getElementById('f_att_date2').value;
+  const entry = {date, dateEnd, type: document.getElementById('f_att_type').value, note: document.getElementById('f_att_note').value.trim()};
   if(formAttendanceEditIdx !== null){
     formAttendance[formAttendanceEditIdx] = entry;
     formAttendanceEditIdx = null;
@@ -843,6 +853,7 @@ function addFormAttendance(){
     formAttendance.push(entry);
   }
   document.getElementById('f_att_date').value='';
+  document.getElementById('f_att_date2').value='';
   document.getElementById('f_att_note').value='';
   renderFormAttendanceTable();
 }
@@ -856,10 +867,11 @@ function removeFormAttendance(i){
 function addFormTraining(){
   const name = document.getElementById('f_tr_name').value.trim();
   const date = document.getElementById('f_tr_date').value;
+  const dateEnd = document.getElementById('f_tr_date2').value;
   const duration = document.getElementById('f_tr_duration').value.trim();
   const location = document.getElementById('f_tr_location').value.trim();
   if(!name){ alert('กรุณากรอกชื่อหลักสูตร'); return; }
-  const entry = {name, date, duration, location};
+  const entry = {name, date, dateEnd, duration, location};
   if(formTrainingEditIdx !== null){
     formTrainings[formTrainingEditIdx] = entry;
     formTrainingEditIdx = null;
@@ -868,6 +880,7 @@ function addFormTraining(){
   }
   document.getElementById('f_tr_name').value='';
   document.getElementById('f_tr_date').value='';
+  document.getElementById('f_tr_date2').value='';
   document.getElementById('f_tr_duration').value='';
   document.getElementById('f_tr_location').value='';
   renderFormTrainingTable();
@@ -1181,12 +1194,12 @@ function renderDetail(){
 
   const trBody = document.querySelector('#trainingTable tbody');
   trBody.innerHTML = (e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`
-    <tr><td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>
+    <tr><td>${esc(t.name)}</td><td>${formatDateRange(t.date, t.dateEnd)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>';
 
   const atBody = document.querySelector('#attendanceTable tbody');
   atBody.innerHTML = (e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>
-    `<tr><td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`
+    `<tr><td>${formatDateRange(a.date, a.dateEnd)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`
   ).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>';
 
   populateFyDropdown(e);
@@ -1340,7 +1353,7 @@ function printEmployee(id){
     <div class="section-page"><h1>ข้อมูลฝึกอบรม</h1>
     <table>
       <tr><td class="label">ชื่อหลักสูตร</td><td class="label">วันที่</td><td class="label">ระยะเวลา</td><td class="label">สถานที่</td></tr>
-      ${(e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`<tr><td>${esc(t.name)}</td><td>${toThaiDate(t.date)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
+      ${(e.trainings||[]).slice().sort((a,b)=> formTrSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(t=>`<tr><td>${esc(t.name)}</td><td>${formatDateRange(t.date, t.dateEnd)}</td><td>${esc(t.duration)}</td><td>${esc(t.location)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     </div><div class="section-page"><h1>บันทึกการลา/มาสาย</h1>
     ${(()=>{ const fy=currentFiscalYear(); const c=getAttendanceSummary(e,fy); return `
@@ -1363,7 +1376,7 @@ function printEmployee(id){
     </div>`; })()}
     <table>
       <tr><td class="label">วันที่</td><td class="label">ประเภท</td><td class="label">หมายเหตุ</td></tr>
-      ${(e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>`<tr><td>${toThaiDate(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
+      ${(e.attendance||[]).slice().sort((a,b)=> formAttSortDesc ? (b.date||'').localeCompare(a.date||'') : (a.date||'').localeCompare(b.date||'')).map(a=>`<tr><td>${formatDateRange(a.date, a.dateEnd)}</td><td>${esc(a.type)}</td><td>${esc(a.note)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;">ไม่มีข้อมูล</td></tr>'}
     </table>
     <script>
       var _fullId = "${formatIdCard(e.idCard)}";
